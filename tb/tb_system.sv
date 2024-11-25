@@ -28,9 +28,10 @@ module tb_system #(
     input logic        [31:0] addr_i,
     input logic        [31:0] wdata_i,
 
-    output logic               gnt_o
-    //output logic               rvalid_o,
-    //output logic        [31:0] rdata_o
+    output logic               gnt_o,
+    output logic               rvalid_o,
+    output logic        [31:0] rdata_o
+
 );
   // Include testbench utils
   `include "tb_util.svh"
@@ -178,9 +179,9 @@ module tb_system #(
       .addr_i               (addr_i),
       .wdata_i              (wdata_i),
 
-      .gnt_o                (gnt_o)
-      //.rvalid_o             (rvalid_o),
-      //.rdata_o              (rdata_o)
+      .gnt_o                (gnt_o),
+      .rvalid_o             (rvalid_o),
+      .rdata_o              (rdata_o)
 
   );
 

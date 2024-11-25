@@ -43,9 +43,6 @@
 // -------- Bridge2Xheep --------
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
-
-// #define MAX_SIM_TIME 1e9
-// #define END_OF_RESET_TIME 4
 //  ------------------------------
 
 // Data types
@@ -73,8 +70,6 @@ void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
 void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
 
 // ---------- Bridge2Xheep Functions Prototypes -----------
-// void clkGen(Vtestharness *dut);
-// void rstDut(Vtestharness *dut, vluint64_t sim_time);
 void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge *req);
 // ---------------------------------------------
 
@@ -204,6 +199,16 @@ int main(int argc, char *argv[])
         }
     }*/
 
+    // Added for the bridge. Open the file with instructions
+    std::ifstream hex_file;
+
+    hex_file.open(firmware_file.c_str());
+
+    if(!hex_file){
+        std::cerr << "[TESTBENCH]: Error opening hex instruction file " << firmware_file.c_str() << std::endl;
+        return -1;
+    }
+
     // Max simulation cycles
     max_cycles_str = getCmdOption(argc, argv, "+max_cycles=");
     if (!max_cycles_str.empty())
@@ -270,15 +275,6 @@ int main(int argc, char *argv[])
     // Reset the DUT
     rstDut(dut, gen_waves, trace);
 
-    std::ifstream hex_file;
-
-    hex_file.open(firmware_file.c_str());
-
-    if(!hex_file){
-        std::cerr << "[TESTBENCH]: Error opening hex instruction file " << firmware_file.c_str() << std::endl;
-        return -1;
-    }
-
     // Load firmware to SRAM
     switch (boot_mode)
     {
@@ -305,18 +301,6 @@ int main(int argc, char *argv[])
 
             // Evaluate the DUT
             dut->eval();
-
-            // Debug
-            std::cout << "------------------------------" << std::endl;
-            std::cout << "\nDUT INFO" << std::endl;
-            std::cout << "req_i: " << std::hex << dut->req_i << std::endl;
-            std::cout << "we_i: " << std::hex << dut->we_i << std::endl;
-            std::cout << "be_i: " << std::hex << dut->be_i << std::endl;
-            std::cout << "addr_i: " << std::hex << dut->addr_i << std::endl;
-            std::cout << "wdata_i: " << std::hex << dut->wdata_i << std::endl;
-            std::cout << "gnt_o: " << std::hex << dut->gnt_o << std::endl;
-            //std::cout << "rvalid_o: " << std::hex << dut->rvalid_o << std::endl;
-            //std::cout << "rdata_o: " << std::hex << dut->rdata_o << std::endl;
 
             // Save waveforms
             if (gen_waves) trace->dump(cntx->time());
@@ -465,14 +449,13 @@ void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge 
 {
     if (hex_file)
     {
-        if (dut->clk_i)
+        if (!dut->clk_i)
         {
             if (!(drv->busy))
             {
                 isValidChar = 1;
 
                 hex_file.get(tmp_hex);
-                std::cout << "Char letto: " << tmp_hex << std::endl;
 
                 // transform the char hex value to an integer
                 if (tmp_hex >= '0' && tmp_hex <= '9')

@@ -91,9 +91,9 @@ module gr_heep_top (
   input logic [31:0] wdata_i,
 
   // Response section for the OBI interface
-  output logic        gnt_o
-  //output logic        rvalid_o,
-  //output logic [31:0] rdata_o
+  output logic        gnt_o,
+  output logic        rvalid_o,
+  output logic [31:0] rdata_o
 );
   import obi_pkg::*;
   import reg_pkg::*;
@@ -746,6 +746,7 @@ module gr_heep_top (
   assign rdata_o  = gr_heep_master_resp[0].rdata;
   */
 
+  /*
   assign u_core_v_mini_mcu.debug_subsystem_i.dm_obi_top_i.master_req_o = req_i;
   assign u_core_v_mini_mcu.debug_subsystem_i.dm_obi_top_i.master_addr_o = addr_i;
   assign u_core_v_mini_mcu.debug_subsystem_i.dm_obi_top_i.master_we_o = we_i;
@@ -753,6 +754,18 @@ module gr_heep_top (
   assign u_core_v_mini_mcu.debug_subsystem_i.dm_obi_top_i.master_wdata_o = wdata_i;
 
   assign gnt_o    = u_core_v_mini_mcu.debug_subsystem_i.dm_obi_top_i.master_gnt_i;
+  */
+
+  assign heep_slave_req[0].req = req_i;
+  assign heep_slave_req[0].we  = we_i;
+  assign heep_slave_req[0].be  = be_i;
+  assign heep_slave_req[0].addr = addr_i;
+  assign heep_slave_req[0].wdata = wdata_i;
+
+  assign gnt_o = heep_slave_rsp[0].gnt;
+  assign rvalid_o = heep_slave_rsp[0].rvalid;
+  assign rdata_o = heep_slave_rsp[0].rdata;
+
 
   // External interrupts
   // -------------------
