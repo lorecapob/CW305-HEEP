@@ -22,6 +22,12 @@
 // User libraries
 #include "tb_macros.hh"
 #include "Vtb_system.h"
+// For the bridge
+#include <iostream>
+#include <fstream>
+// -------- Bridge2Xheep --------
+#include "Bridge2Xheep.h"
+// ------------------------------
 
 // Defines
 // -------
@@ -30,14 +36,22 @@
 #define RESET_CYCLES 200
 #define POST_RESET_CYCLES 50
 #define MAX_SIM_CYCLES 2e6
-#define BOOT_SEL 0 // 0: JTAG boot
+#define BOOT_SEL 0        // 0: JTAG boot
 #define EXEC_FROM_FLASH 0 // 0: do not execute from flash
 #define RUN_CYCLES 500
 #define TB_HIER_NAME "TOP.tb_system"
+// -------- Bridge2Xheep --------
+#define NUMBER_0_9 48 // '0' = 48 in ASCII
+#define NUMBER_A_F 55 // 'A' = 65 in ASCII
+
+// #define MAX_SIM_TIME 1e9
+// #define END_OF_RESET_TIME 4
+//  ------------------------------
 
 // Data types
 // ----------
-enum boot_mode_e {
+enum boot_mode_e
+{
     BOOT_MODE_JTAG = 0,
     BOOT_MODE_FLASH = 1,
     BOOT_MODE_FORCE = 2
@@ -46,7 +60,7 @@ enum boot_mode_e {
 // Function prototypes
 // -------------------
 // Process runtime parameters
-std::string getCmdOption(int argc, char* argv[], const std::string& option);
+std::string getCmdOption(int argc, char *argv[], const std::string &option);
 
 // DUT initialization
 void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash);
@@ -58,11 +72,35 @@ void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
 // Run simulation for the specififed number of cycles
 void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
 
+// ---------- Bridge2Xheep Functions Prototypes -----------
+// void clkGen(Vtestharness *dut);
+// void rstDut(Vtestharness *dut, vluint64_t sim_time);
+void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge *req);
+// ---------------------------------------------
+
 // Global variables
 // ----------------
 // Testbench logger
 TbLogger logger;
 vluint64_t sim_cycles = 0;
+
+// ------ Global variables for instruction file reading -----
+char tmp_hex;
+int ascii_offset;
+int isValidChar = 1;
+
+// Address related variables
+unsigned int address = 0;
+int isNewAddress = 0;
+int addrEmptyByte = 7;
+
+// Instructions related variables
+unsigned int instruction = 0;
+int instrFilledByte = 0;
+
+int k = 1;
+int tmp_instruction = 0;
+// ----------------------------------------------------------
 
 int main(int argc, char *argv[])
 {
@@ -72,20 +110,21 @@ int main(int argc, char *argv[])
     // COMMAND-LINE OPTIONS
     // --------------------
     // Define command-line options
-    bool gen_waves = false;
+    bool gen_waves = true;
     bool no_err = false;
     const option longopts[] = {
         {"help", no_argument, NULL, 'h'},
         {"log_level", required_argument, NULL, 'l'},
         {"trace", required_argument, NULL, 't'},
         {"no_err", required_argument, NULL, 'q'},
-        {NULL, 0, NULL, 0}
-    };
+        {NULL, 0, NULL, 0}};
 
     // Parse command-line options
     int opt;
-    while ((opt = getopt_long(argc, argv, "hl:t:q:", longopts, NULL)) >= 0) {
-        switch (opt) {
+    while ((opt = getopt_long(argc, argv, "hl:t:q:", longopts, NULL)) >= 0)
+    {
+        switch (opt)
+        {
         case 'h':
             printf("Usage: %s [OPTIONS]\n", argv[0]);
             printf("Options:\n");
@@ -99,12 +138,14 @@ int main(int argc, char *argv[])
             logger.setLogLvl(optarg);
             break;
         case 't':
-            if (strcmp(optarg, "1") == 0 || strcmp(optarg, "true") == 0) {
+            if (strcmp(optarg, "1") == 0 || strcmp(optarg, "true") == 0)
+            {
                 gen_waves = true;
             }
             break;
         case 'q':
-            if (strcmp(optarg, "1") == 0 || strcmp(optarg, "true") == 0) {
+            if (strcmp(optarg, "1") == 0 || strcmp(optarg, "true") == 0)
+            {
                 no_err = true;
             }
             break;
@@ -126,13 +167,20 @@ int main(int argc, char *argv[])
 
     // Boot mode
     boot_mode_str = getCmdOption(argc, argv, "+boot_mode=");
-    if (boot_mode_str == "jtag" || boot_mode_str == "0") {
+    if (boot_mode_str == "jtag" || boot_mode_str == "0")
+    {
         boot_mode = BOOT_MODE_JTAG;
-    } else if (boot_mode_str == "flash" || boot_mode_str == "1") {
+    }
+    else if (boot_mode_str == "flash" || boot_mode_str == "1")
+    {
         boot_mode = BOOT_MODE_FLASH;
-    } else if (boot_mode_str == "force" || boot_mode_str == "2") {
+    }
+    else if (boot_mode_str == "force" || boot_mode_str == "2")
+    {
         boot_mode = BOOT_MODE_FORCE;
-    } else {
+    }
+    else
+    {
         TB_WARN("Invalid boot mode '%s'. Defaulting to JTAG", boot_mode_str.c_str());
         boot_mode_str = "jtag";
         boot_mode = BOOT_MODE_JTAG;
@@ -140,43 +188,55 @@ int main(int argc, char *argv[])
 
     // Firmware HEX file
     firmware_file = getCmdOption(argc, argv, "+firmware=");
-    if (firmware_file.empty()) {
+    if (firmware_file.empty())
+    {
         TB_ERR("No firmware file specified");
         exit(EXIT_FAILURE);
-    } else {
+    }
+    /*else
+    {
         // Check if file exists
         FILE *fp = fopen(firmware_file.c_str(), "r");
-        if (fp == NULL) {
+        if (fp == NULL)
+        {
             TB_ERR("Cannot open firmware file '%s': %s", firmware_file.c_str(), strerror(errno));
             exit(EXIT_FAILURE);
         }
-    }
+    }*/
 
     // Max simulation cycles
     max_cycles_str = getCmdOption(argc, argv, "+max_cycles=");
-    if (!max_cycles_str.empty()) {
+    if (!max_cycles_str.empty())
+    {
         max_cycles = std::stoul(max_cycles_str);
     }
 
     // Testbench initialization
     // ------------------------
     // Create log directory
-    if (gen_waves) Verilated::mkdir("logs");
+    if (gen_waves)
+        Verilated::mkdir("logs");
 
     // Create Verilator simulation context
     VerilatedContext *cntx = new VerilatedContext;
     cntx->commandArgs(argc, argv);
-    if (gen_waves) cntx->traceEverOn(true);
+    if (gen_waves)
+        cntx->traceEverOn(true);
 
     // Pass the simulation context to the logger
     logger.setSimContext(cntx);
 
     // Instantiate the DUT
     Vtb_system *dut = new Vtb_system(cntx);
+    // ----------- Instantiate Bridge2Xheep components ---------
+    Drv *drv = new Drv(dut);
+    ReqBridge *req = new ReqBridge;
+    // ---------------------------------------------------------
 
     // Set the file to store the waveforms in
     VerilatedFstC *trace = NULL;
-    if (gen_waves) {
+    if (gen_waves)
+    {
         trace = new VerilatedFstC;
         dut->trace(trace, 10);
         trace->open(FST_FILENAME);
@@ -185,11 +245,12 @@ int main(int argc, char *argv[])
     // Set scope for DPI functions
     svSetScope(svGetScopeFromName(TB_HIER_NAME));
     svScope scope = svGetScope();
-    if (scope == 0) {
+    if (scope == 0)
+    {
         TB_ERR("svSetScope(): failed to set scope for DPI functions to %s", TB_HIER_NAME);
         exit(EXIT_FAILURE);
     }
-    
+
     // Print testbench configuration
     // -----------------------------
     TB_CONFIG("Log level set to %u", logger.getLogLvl());
@@ -202,12 +263,21 @@ int main(int argc, char *argv[])
     // RUN SIMULATION
     // --------------
     TB_LOG(LOG_MEDIUM, "Starting simulation");
-    
+
     // Initialize the DUT
     initDut(dut, boot_mode, EXEC_FROM_FLASH);
 
     // Reset the DUT
     rstDut(dut, gen_waves, trace);
+
+    std::ifstream hex_file;
+
+    hex_file.open(firmware_file.c_str());
+
+    if(!hex_file){
+        std::cerr << "[TESTBENCH]: Error opening hex instruction file " << firmware_file.c_str() << std::endl;
+        return -1;
+    }
 
     // Load firmware to SRAM
     switch (boot_mode)
@@ -219,7 +289,40 @@ int main(int argc, char *argv[])
     case BOOT_MODE_FORCE:
         TB_LOG(LOG_LOW, "Loading firmware...");
         TB_LOG(LOG_MEDIUM, "- writing firmware to SRAM...");
-        dut->tb_loadHEX(firmware_file.c_str());
+        //dut->tb_loadHEX(firmware_file.c_str());
+
+        // Firmware loading procedure replaced by the SW bridge
+        while (hex_file) // This loop goes on until the end of file is reached
+        {
+            // Generate clock
+            clkGen(dut);
+
+            // Call the method to generate the request
+            genReqBridge(hex_file, dut, drv, req);
+
+            // Send request to the driver
+            drv->drive(req);
+
+            // Evaluate the DUT
+            dut->eval();
+
+            // Debug
+            std::cout << "------------------------------" << std::endl;
+            std::cout << "\nDUT INFO" << std::endl;
+            std::cout << "req_i: " << std::hex << dut->req_i << std::endl;
+            std::cout << "we_i: " << std::hex << dut->we_i << std::endl;
+            std::cout << "be_i: " << std::hex << dut->be_i << std::endl;
+            std::cout << "addr_i: " << std::hex << dut->addr_i << std::endl;
+            std::cout << "wdata_i: " << std::hex << dut->wdata_i << std::endl;
+            std::cout << "gnt_o: " << std::hex << dut->gnt_o << std::endl;
+            //std::cout << "rvalid_o: " << std::hex << dut->rvalid_o << std::endl;
+            //std::cout << "rdata_o: " << std::hex << dut->rdata_o << std::endl;
+
+            // Save waveforms
+            if (gen_waves) trace->dump(cntx->time());
+            cntx->timeInc(1);
+        }
+
         runCycles(1, dut, gen_waves, trace);
         TB_LOG(LOG_MEDIUM, "- triggering boot loop exit...");
         dut->tb_set_exit_loop();
@@ -230,18 +333,20 @@ int main(int argc, char *argv[])
     case BOOT_MODE_FLASH:
         TB_LOG(LOG_LOW, "Waiting for boot code to load firmware from flash...");
         break;
-    
+
     default:
         TB_ERR("Invalid boot mode: %d", boot_mode);
         exit(EXIT_FAILURE);
     }
 
     // Run until the end of simulation is reached
-    while (!cntx->gotFinish() && cntx->time() < (max_cycles << 1) && dut->exit_valid_o == 0) {
+    while (!cntx->gotFinish() && cntx->time() < (max_cycles << 1) && dut->exit_valid_o == 0)
+    {
         TB_LOG(LOG_FULL, "Running %lu cycles...", RUN_CYCLES);
         runCycles(RUN_CYCLES, dut, gen_waves, trace);
     }
-    if (cntx->time() >= (max_cycles << 1)) {
+    if (cntx->time() >= (max_cycles << 1))
+    {
         TB_WARN("Max simulation cycles reached");
     }
 
@@ -249,11 +354,14 @@ int main(int argc, char *argv[])
     TB_LOG(LOG_LOW, "Simulation complete");
 
     // Check exit value
-    if (dut->exit_valid_o) {
+    if (dut->exit_valid_o)
+    {
         TB_LOG(LOG_LOW, "Exit value: %d", dut->exit_value_o);
         exit_val = dut->exit_value_o;
         runCycles(10, dut, gen_waves, trace);
-    } else {
+    }
+    else
+    {
         TB_ERR("No exit value detected");
         exit_val = EXIT_FAILURE;
     }
@@ -264,17 +372,32 @@ int main(int argc, char *argv[])
     dut->final();
 
     // Clean up and exit
-    if (gen_waves) trace->close();
+    if (gen_waves)
+        trace->close();
     delete dut;
     delete cntx;
-    if (no_err) exit(EXIT_SUCCESS);
+    // ----------- Clean up Bridge2Xheep components -----------
+    delete drv;
+    delete req;
+    hex_file.close();
+    // ------------------------------------------------------
+    if (no_err)
+        exit(EXIT_SUCCESS);
     exit(exit_val);
 }
 
-void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash) {
+void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash)
+{
     // Clock and reset
     dut->clk_i = 0;
     dut->rst_ni = 1;
+
+    // Bridge Signals
+    dut->req_i = 0;
+    dut->we_i = 0;
+    dut->be_i = 0;
+    dut->addr_i = 0;
+    dut->wdata_i = 0;
 
     // Static configuration
     dut->boot_select_i = boot_mode == BOOT_MODE_FLASH;
@@ -282,11 +405,13 @@ void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash) {
     dut->eval();
 }
 
-void clkGen(Vtb_system *dut) {
+void clkGen(Vtb_system *dut)
+{
     dut->clk_i ^= 1;
 }
 
-void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace) {
+void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace)
+{
     dut->rst_ni = 1;
     TB_LOG(LOG_MEDIUM, "Resetting DUT...");
     runCycles(PRE_RESET_CYCLES, dut, gen_waves, trace);
@@ -298,9 +423,11 @@ void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace) {
     runCycles(POST_RESET_CYCLES, dut, gen_waves, trace);
 }
 
-void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace) {
+void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace)
+{
     VerilatedContext *cntx = dut->contextp();
-    for (unsigned int i = 0; i < (2*ncycles); i++) {
+    for (unsigned int i = 0; i < (2 * ncycles); i++)
+    {
         // Generate clock
         clkGen(dut);
 
@@ -308,25 +435,149 @@ void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, Verilat
         dut->eval();
 
         // Save waveforms
-        if (gen_waves) trace->dump(cntx->time());
-        if (dut->clk_i == 1) sim_cycles++;
+        if (gen_waves)
+            trace->dump(cntx->time());
+        if (dut->clk_i == 1)
+            sim_cycles++;
         cntx->timeInc(1);
     }
 }
 
-std::string getCmdOption(int argc, char* argv[], const std::string& option)
+std::string getCmdOption(int argc, char *argv[], const std::string &option)
 {
 
     std::string cmd;
-    for( int i = 0; i < argc; ++i)
+    for (int i = 0; i < argc; ++i)
     {
         std::string arg = argv[i];
         size_t arg_size = arg.length();
         size_t option_size = option.length();
 
-        if(arg.find(option)==0){
-        cmd = arg.substr(option_size,arg_size-option_size);
+        if (arg.find(option) == 0)
+        {
+            cmd = arg.substr(option_size, arg_size - option_size);
         }
     }
     return cmd;
+}
+
+void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge *req)
+{
+    if (hex_file)
+    {
+        if (dut->clk_i)
+        {
+            if (!(drv->busy))
+            {
+                isValidChar = 1;
+
+                hex_file.get(tmp_hex);
+                std::cout << "Char letto: " << tmp_hex << std::endl;
+
+                // transform the char hex value to an integer
+                if (tmp_hex >= '0' && tmp_hex <= '9')
+                {
+                    ascii_offset = NUMBER_0_9;
+                }
+                else if (tmp_hex >= 'A' && tmp_hex <= 'F')
+                {
+                    ascii_offset = NUMBER_A_F;
+                }
+                else if (tmp_hex == '@')
+                {
+                    isNewAddress = 1;
+                }
+                else
+                {
+                    isValidChar = 0;
+                }
+
+                if (isNewAddress)
+                {
+                    if (addrEmptyByte >= 0)
+                    {
+                        // It may happen that the line does not contain always 8 hex values per instruction.
+                        // In this case, we need to fill the empty bytes with 0 before setting the new address.
+                        // However, those zeros will become MSB, so there is no need to add them manually.
+                        if (instrFilledByte > 0 && instrFilledByte < 4)
+                        {
+                            instrFilledByte = 0;
+                            // Call set instr method
+                            req->instruction = instruction;
+                            req->valid = 1;
+                            instruction = 0;
+                        }
+                        else if (tmp_hex != '@')
+                        {
+                            // Since 0 is decimal 48 in ASCII, we need to subtract 48 to get the correct value.
+                            // Since A is decimal 65 in ASCII, we need to subtract 65 and add 10 to get the correct value for A-F.
+                            // We shift the value to the left by 4*i to get the correct address, since the address is 32 bit
+                            // and we are reading 8 hex values starting from the MSB.
+                            address += ((tmp_hex - ascii_offset) << 4 * addrEmptyByte);
+                            addrEmptyByte--;
+                        }
+                    }
+                    else
+                    {
+                        isNewAddress = 0;
+                        addrEmptyByte = 7;
+                        // call setAddress Method
+                        req->address = address;
+
+                        // Workaround to avoid misalignement of instructions at 0x180.
+                        // In fact, instruction with address lower than 0x180 are not valid and should be discarded.
+                        // However, the main.hex file contains instruction with address lower than 0x180.
+                        // These instructions are read anyway and the valid flag is set to 1 each time a new
+                        // instruction is valid. Due to this behavior, as soon the address 0x180 is read, since the
+                        // previous instrucion set valid to 1, a wrong instrucion is sent to the bridge and then written
+                        // in the RAM, causing malfunctioning of the system. Setting the valid flag to 0 when the address
+                        // is exactly 0x180 avoids this issue. This does not affect the correct behavior of the system
+                        // since the instructions are read always after the address and as soon the correct instruction for the
+                        // address 0x180 is read, a new valid is set to 1.
+                        // For all others jumps, there is not this issue, since the drive method in the bridge manages to set valid
+                        // to 0 when the instruction is written in the RAM.
+                        if (req->address == 0x180)
+                        {
+                            req->valid = 0;
+                        }
+
+                        address = 0;
+                    }
+                }
+                else
+                {
+                    if (isValidChar)
+                    {
+                        // Here is more complex. Since the instructions are in the form 97 F1 00 00 but they need to be
+                        // written in the form 00 00 F1 97, we need first to read 2 hex values and shift the first one
+                        // to the left by 4 bits. Then the sum of the 2 hex values is shifted to the left a number of bytes
+                        // proportional to the number of hex values read so far.
+                        // When an instrucion is complete, we call the setInstr method.
+                        tmp_instruction += (tmp_hex - ascii_offset) << 4 * k;
+                        k--;
+
+                        if (k == -1)
+                        {
+                            if (instrFilledByte < 4)
+                            {
+                                instruction += (tmp_instruction << (8 * instrFilledByte));
+                                instrFilledByte++;
+                            }
+
+                            k = 1;
+                            tmp_instruction = 0;
+                        }
+                    }
+                    else if (instrFilledByte == 4)
+                    {
+                        instrFilledByte = 0;
+                        // Call set instr method
+                        req->instruction = instruction;
+                        req->valid = 1;
+                        instruction = 0;
+                    }
+                }
+            }
+        }
+    }
 }

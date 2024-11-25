@@ -19,7 +19,18 @@ module tb_system #(
 
     // Exit signals
     inout logic        exit_valid_o,
-    inout logic [31:0] exit_value_o
+    inout logic [31:0] exit_value_o,
+
+    // Bridge signals
+    input logic               req_i,
+    input logic               we_i,
+    input logic        [ 3:0] be_i,
+    input logic        [31:0] addr_i,
+    input logic        [31:0] wdata_i,
+
+    output logic               gnt_o
+    //output logic               rvalid_o,
+    //output logic        [31:0] rdata_o
 );
   // Include testbench utils
   `include "tb_util.svh"
@@ -158,7 +169,19 @@ module tb_system #(
       .i2s_ws_io           (),
       .i2s_sd_io           (),
       .clk_i           (clk_i),
-      .exit_value_o        (exit_value_o[0])
+      .exit_value_o        (exit_value_o[0]),
+
+      // Bridge signals
+      .req_i                (req_i),
+      .we_i                 (we_i),
+      .be_i                 (be_i),
+      .addr_i               (addr_i),
+      .wdata_i              (wdata_i),
+
+      .gnt_o                (gnt_o)
+      //.rvalid_o             (rvalid_o),
+      //.rdata_o              (rdata_o)
+
   );
 
   // Exit value

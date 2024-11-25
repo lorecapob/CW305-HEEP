@@ -53,6 +53,10 @@ filesets:
   tb-verilator:
     files:
     - tb/verilator/tb_macros.cpp
+    # Added for the bridge
+    - tb/verilator/Bridge2Xheep.h: { is_include_file: true }
+    - tb/verilator/Bridge2Xheep.cpp
+    #
     - tb/verilator/gr_heep_tb.cpp
     - tb/verilator/tb_macros.hh: {is_include_file: true}
     file_type: cppSource
