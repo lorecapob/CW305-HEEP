@@ -45,6 +45,7 @@ filesets:
   # RTL testbench system
   tb-system:
     files:
+    - hw/vendor/cw305_bridge/bridge2xheep
     - tb/tb_system.sv
     - tb/tb_util.svh: {is_include_file: true}
     file_type: systemVerilogSource

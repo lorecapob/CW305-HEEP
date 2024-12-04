@@ -297,7 +297,46 @@ int main(int argc, char *argv[])
             genReqBridge(hex_file, dut, drv, req);
 
             // Send request to the driver
-            drv->drive(req);
+            //drv->drive(req);
+            // Commented since in the hw implementation the bridge start a new transation automatically when
+            // the instruction valid flag is set.
+            if (req->address < 0x180){
+                dut->inst_valid_i = 0;
+            } 
+            else if (req->address >= 0x180 && req->address < 0x1ec){
+                dut->inst_valid_i = req->valid;
+                dut->instruction_i = req->instruction;
+                req->valid = 0;
+            } 
+            else if (req->address >= 0x1ec && req->address < 0x5100){
+                dut->inst_valid_i = req->valid;
+                dut->instruction_i = req->instruction;
+                req->valid = 0;
+            } 
+            else if (req->address >= 0x5100 && req->address < 0xe800){
+                dut->inst_valid_i = req->valid;
+                dut->instruction_i = req->instruction;
+                req->valid = 0;
+            }
+            else if ( req->address >= 0xe800 && req->address < 0xec78){
+                dut->inst_valid_i = req->valid;
+                dut->instruction_i = req->instruction;
+                req->valid = 0;
+            }
+            else if (req->address >= 0xec78 && req->address < 0xedb0){
+                dut->inst_valid_i = req->valid;
+                dut->instruction_i = req->instruction;
+                req->valid = 0;
+            }
+            else if (req->address >= 0xedb0){
+                dut->inst_valid_i = req->valid;
+                dut->instruction_i = req->instruction;
+                req->valid = 0;
+            }
+            else {
+                dut->inst_valid_i = 1;
+                dut->instruction_i = 0;
+            }
 
             // Evaluate the DUT
             dut->eval();
@@ -375,13 +414,14 @@ void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash)
     // Clock and reset
     dut->clk_i = 0;
     dut->rst_ni = 1;
-
+    /*
     // Bridge Signals
     dut->req_i = 0;
     dut->we_i = 0;
     dut->be_i = 0;
     dut->addr_i = 0;
     dut->wdata_i = 0;
+    */
 
     // Static configuration
     dut->boot_select_i = boot_mode == BOOT_MODE_FLASH;
@@ -451,7 +491,7 @@ void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge 
     {
         if (!dut->clk_i)
         {
-            if (!(drv->busy))
+            if (!(dut->busy_o))
             {
                 isValidChar = 1;
 

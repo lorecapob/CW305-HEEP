@@ -31,7 +31,7 @@ Drv::Drv(Vtb_system *dut)
 Drv::~Drv()
 {
 }
-
+/*
 void Drv::drive(ReqBridge *req)
 {
     /*
@@ -40,7 +40,7 @@ void Drv::drive(ReqBridge *req)
     dut->be_i                 = 0b1111;
     dut->addr_i               = 0x180;
     dut->wdata_i              = 0;
-    */
+    *//*
 
     if (req->valid)
     {
@@ -94,4 +94,4 @@ void Drv::drive(ReqBridge *req)
         
     }
     
-}
+}*/

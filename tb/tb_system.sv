@@ -21,16 +21,11 @@ module tb_system #(
     inout logic        exit_valid_o,
     inout logic [31:0] exit_value_o,
 
-    // Bridge signals
-    input logic               req_i,
-    input logic               we_i,
-    input logic        [ 3:0] be_i,
-    input logic        [31:0] addr_i,
-    input logic        [31:0] wdata_i,
-
-    output logic               gnt_o,
-    output logic               rvalid_o,
-    output logic        [31:0] rdata_o
+    input   logic inst_valid_i,
+    input   logic [31:0] instruction_i,
+    output  logic busy_o,
+    output  logic OBI_rvalid_o,
+    output  logic [31:0] OBI_rdata_o
 
 );
   // Include testbench utils
@@ -64,6 +59,17 @@ module tb_system #(
 
   // GPIO
   wire                          clk_div;
+
+  // Bridge signals
+  logic               req_i;
+  logic               we_i;
+  logic        [ 3:0] be_i;
+  logic        [31:0] addr_i;
+  logic        [31:0] wdata_i;
+
+  logic               gnt_o;
+  logic               rvalid_o;
+  logic        [31:0] rdata_o;
 
   // UART DPI emulator
   uartdpi #(
@@ -184,6 +190,28 @@ module tb_system #(
       .rdata_o              (rdata_o)
 
   );
+
+  // Some modifications are needed. All the OBI signals have to move from the PORT section to internal signals
+  // and the bridge MCU side signals have to be added
+
+  // Bridge instantiation
+  bridge2xheep u_bridge2xheep (
+    .clk(clk_i),
+    .rst_n(rst_ni),
+    .req(req_i),
+    .we(we_i),
+    .be(be_i),
+    .addr(addr_i),
+    .wdata(wdata_i),
+    .gnt(gnt_o),
+    .rvalid(rvalid_o),
+    .rdata(rdata_o),
+    .inst_valid(inst_valid_i),
+    .busy(busy_o),
+    .instruction(instruction_i),
+    .OBI_rvalid(OBI_rvalid_o),
+    .OBI_rdata(OBI_rdata_o)
+    );
 
   // Exit value
   assign exit_value_o[31:1] = u_gr_heep_top.u_core_v_mini_mcu.exit_value_o[31:1];
