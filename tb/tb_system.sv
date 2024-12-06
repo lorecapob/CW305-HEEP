@@ -23,6 +23,8 @@ module tb_system #(
 
     input   logic inst_valid_i,
     input   logic [31:0] instruction_i,
+    input   logic new_addr_valid_i,
+    input   logic [31:0] new_section_address_i,
     output  logic busy_o,
     output  logic OBI_rvalid_o,
     output  logic [31:0] OBI_rdata_o
@@ -206,9 +208,11 @@ module tb_system #(
     .gnt(gnt_o),
     .rvalid(rvalid_o),
     .rdata(rdata_o),
-    .inst_valid(inst_valid_i),
+    .instr_valid(inst_valid_i),
+    .addr_valid(new_addr_valid_i),
     .busy(busy_o),
     .instruction(instruction_i),
+    .new_section_address(new_section_address_i),
     .OBI_rvalid(OBI_rvalid_o),
     .OBI_rdata(OBI_rdata_o)
     );

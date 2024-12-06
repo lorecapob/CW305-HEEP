@@ -8,6 +8,7 @@ ReqBridge::ReqBridge()
     this->instruction = 0;
     this->address = 0;
     this->valid = 0;
+    this->addr_valid = 0;
 }
 
 ReqBridge::~ReqBridge()

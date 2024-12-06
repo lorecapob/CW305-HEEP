@@ -300,42 +300,18 @@ int main(int argc, char *argv[])
             //drv->drive(req);
             // Commented since in the hw implementation the bridge start a new transation automatically when
             // the instruction valid flag is set.
-            if (req->address < 0x180){
-                dut->inst_valid_i = 0;
-            } 
-            else if (req->address >= 0x180 && req->address < 0x1ec){
-                dut->inst_valid_i = req->valid;
-                dut->instruction_i = req->instruction;
+            
+            if (dut->clk_i)
+            {
+                if (req->address >= 0x180)
+                {
+                    dut->inst_valid_i = req->valid;
+                    dut->instruction_i = req->instruction;
+                    dut->new_addr_valid_i = req->addr_valid;
+                    dut->new_section_address_i = req->address;
+                }
                 req->valid = 0;
-            } 
-            else if (req->address >= 0x1ec && req->address < 0x5100){
-                dut->inst_valid_i = req->valid;
-                dut->instruction_i = req->instruction;
-                req->valid = 0;
-            } 
-            else if (req->address >= 0x5100 && req->address < 0xe800){
-                dut->inst_valid_i = req->valid;
-                dut->instruction_i = req->instruction;
-                req->valid = 0;
-            }
-            else if ( req->address >= 0xe800 && req->address < 0xec78){
-                dut->inst_valid_i = req->valid;
-                dut->instruction_i = req->instruction;
-                req->valid = 0;
-            }
-            else if (req->address >= 0xec78 && req->address < 0xedb0){
-                dut->inst_valid_i = req->valid;
-                dut->instruction_i = req->instruction;
-                req->valid = 0;
-            }
-            else if (req->address >= 0xedb0){
-                dut->inst_valid_i = req->valid;
-                dut->instruction_i = req->instruction;
-                req->valid = 0;
-            }
-            else {
-                dut->inst_valid_i = 1;
-                dut->instruction_i = 0;
+                req->addr_valid = 0;
             }
 
             // Evaluate the DUT
@@ -546,6 +522,11 @@ void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge 
                         addrEmptyByte = 7;
                         // call setAddress Method
                         req->address = address;
+
+                        if (address >= 0x180)
+                        {
+                            req->addr_valid = 1;
+                        }
 
                         // Workaround to avoid misalignement of instructions at 0x180.
                         // In fact, instruction with address lower than 0x180 are not valid and should be discarded.

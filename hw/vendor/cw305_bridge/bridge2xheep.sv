@@ -22,7 +22,8 @@ module bridge2xheep
 
     // ####### MCU side #######
     // Status register flags
-    input logic inst_valid,
+    input logic instr_valid,
+    input logic addr_valid,
     //input logic data_read,
 
     output logic busy,
@@ -31,20 +32,24 @@ module bridge2xheep
     output logic [31:0] OBI_rdata,
 
     // Instruction register values
-    input logic [31:0] instruction
+    input logic [31:0] instruction,
+    input logic [31:0] new_section_address
 );
 
-enum logic [3:0] {RESET, IDLE, REQ_SENT, GNT_RECEIVED} currentState, nextState;
-logic [31:0] internal_addr = 32'h00000180;
+enum logic [5:0] {RESET, IDLE, SET_COUNTER, LD_INSTR, REQ_SENT, GNT_RECEIVED} currentState, nextState;
+logic [31:0] internal_addr;
 
-assign addr = internal_addr;
-assign wdata = instruction;
+logic CNT_RSTN;
+logic CNT_LD;
+logic CNT_EN;
+
+logic INST_REG_RSTN;
+logic INST_REG_LD;
 
 assign OBI_rdata = rdata;
 assign OBI_rvalid = rvalid;
 
 always_comb begin: next_State_logic
-    nextState = RESET;
     
     case(currentState)
         RESET: begin
@@ -52,10 +57,20 @@ always_comb begin: next_State_logic
         end
 
         IDLE: begin
-            if(inst_valid)
-                nextState = REQ_SENT;
+            if(addr_valid)
+                nextState = SET_COUNTER;
+            else if(instr_valid)
+                nextState = LD_INSTR;
             else
                 nextState = IDLE;
+        end
+
+        SET_COUNTER: begin
+            nextState = IDLE;
+        end
+
+        LD_INSTR: begin
+            nextState = REQ_SENT;
         end
 
         REQ_SENT: begin
@@ -89,8 +104,11 @@ always_comb begin: output_generation_logic
             req = 1'b0;
             we = 1'b0;
             be = 4'b0;
-            //addr = 32'b0;
-            //wdata = 32'b0;
+            CNT_RSTN = 1'b0;
+            CNT_LD = 1'b0;
+            CNT_EN = 1'b0;
+            INST_REG_RSTN = 1'b0;
+            INST_REG_LD = 1'b0;
             busy = 1'b0;
         end
 
@@ -98,17 +116,47 @@ always_comb begin: output_generation_logic
             req = 1'b0;
             we = 1'b0;
             be = 4'b0;
-            //addr = 32'b0;
-            //wdata = 32'b0;
+            CNT_RSTN = 1'b1;
+            CNT_LD = 1'b0;
+            CNT_EN = 1'b0;
+            INST_REG_RSTN = 1'b1;
+            INST_REG_LD = 1'b0;
             busy = 1'b0;
+        end
+
+        SET_COUNTER: begin
+            req = 1'b0;
+            we = 1'b0;
+            be = 4'b0;
+            CNT_RSTN = 1'b1;
+            CNT_LD = 1'b1;
+            CNT_EN = 1'b0;
+            INST_REG_RSTN = 1'b1;
+            INST_REG_LD = 1'b0;
+            busy = 1'b0;
+        end
+
+        LD_INSTR: begin
+            req = 1'b0;
+            we = 1'b0;
+            be = 4'b0;
+            CNT_RSTN = 1'b1;
+            CNT_LD = 1'b0;
+            CNT_EN = 1'b0;
+            INST_REG_RSTN = 1'b1;
+            INST_REG_LD = 1'b1;
+            busy = 1'b1;
         end
 
         REQ_SENT: begin
             req = 1'b1;
             we = 1'b1;
             be = 4'b1111;
-            //addr = internal_addr;
-            //wdata = instruction;
+            CNT_RSTN = 1'b1;
+            CNT_LD = 1'b0;
+            CNT_EN = 1'b0;
+            INST_REG_RSTN = 1'b1;
+            INST_REG_LD = 1'b0;
             busy = 1'b1;
         end
 
@@ -116,30 +164,47 @@ always_comb begin: output_generation_logic
             req = 1'b0;
             we = 1'b0;
             be = 4'b0;
-            //addr = 32'b0;
-            //wdata = 32'b0;
-            busy = 1'b0;
+            CNT_RSTN = 1'b1;
+            CNT_LD = 1'b0;
+            CNT_EN = 1'b1;
+            INST_REG_RSTN = 1'b1;
+            INST_REG_LD = 1'b0;
+            busy = 1'b1;
         end
 
         default: begin
             req = 1'b0;
             we = 1'b0;
             be = 4'b0;
-            //addr = 32'b0;
-            //wdata = 32'b0;
+            CNT_RSTN = 1'b0;
+            CNT_LD = 1'b0;
+            CNT_EN = 1'b0;
+            INST_REG_RSTN = 1'b0;
+            INST_REG_LD = 1'b0;
             busy = 1'b0;
         end
     endcase
 
 end
 
-// Update the address for the next instruction
-always_ff @(posedge clk) begin
-    if(currentState == GNT_RECEIVED) begin
-        internal_addr <= internal_addr + 4;
-    end
+instr_reg #() internal_reg (
+    .clk(clk),
+    .rst_n(INST_REG_RSTN),
+    .LD(INST_REG_LD),
+    .instr_in(instruction),
+    .instr_out(wdata)
+);
 
-end
+counter_plus4 #() addr_counter (
+    .clk(clk),
+    .rst_n(CNT_RSTN),
+    .LD_cnt(CNT_LD),
+    .EN_cnt(CNT_EN),
+    .cnt_in(new_section_address),
+    .cnt_out(internal_addr)
+);
+
+assign addr = internal_addr;
 
 
 endmodule

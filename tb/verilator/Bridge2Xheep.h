@@ -12,6 +12,7 @@ public:
     vluint32_t instruction;
     vluint32_t address;
     vluint8_t valid;
+    vluint8_t addr_valid;
 
     vluint8_t ready;
 
