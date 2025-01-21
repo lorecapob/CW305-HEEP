@@ -47,6 +47,7 @@ filesets:
     files:
     - hw/vendor/cw305_bridge/instr_reg
     - hw/vendor/cw305_bridge/counter_plus4
+    - hw/vendor/cw305_bridge/bridge2xheep_cu
     - hw/vendor/cw305_bridge/bridge2xheep
     - tb/tb_system.sv
     - tb/tb_util.svh: {is_include_file: true}

@@ -30,21 +30,19 @@ either expressed or implied, of NewAE Technology Inc.
 `default_nettype none 
 
 module cw305_top #(
-    parameter pBYTECNT_SIZE = 7,
-    parameter pADDR_WIDTH = 21,
+    parameter pBYTECNT_SIZE = 2, // this parameter defines the number of bits used to address the bytes in the register. 2 bits => 2^2 => 4 bytes, so each register can store 4 bytes
+    parameter pADDR_WIDTH = 21,  // the first (pADDR_WIDTH - pBYTECNT_SIZE) MSB bits are used to address the register, the remaining LSB bits are used to address the bytes in the register
     parameter pPT_WIDTH = 128,
     parameter pCT_WIDTH = 128,
     parameter pKEY_WIDTH = 128
+
+   // Added for the bridge
+   parameter pINSTR_WIDTH = 32
 )(
     // USB Interface
     input wire                          usb_clk,        // Clock
-`ifdef SS2_WRAPPER
-    output wire                         usb_clk_buf,    // if needed by parent module
-    input  wire [7:0]                   usb_data,
-    output wire [7:0]                   usb_dout,
-`else
     inout wire [7:0]                    usb_data,       // Data for write/read
-`endif
+
     input wire [pADDR_WIDTH-1:0]        usb_addr,       // Address
     input wire                          usb_rdn,        // !RD, low when addr valid for read
     input wire                          usb_wrn,        // !WR, low when data+addr valid for write
@@ -85,11 +83,6 @@ module cw305_top #(
 `endif
     );
 
-`ifndef SS2_WRAPPER
-    wire usb_clk_buf;
-    wire [7:0] usb_dout;
-    assign usb_data = isout? usb_dout : 8'bZ;
-`endif
 
     wire [pKEY_WIDTH-1:0] crypt_key;
     wire [pPT_WIDTH-1:0] crypt_textout;
@@ -99,6 +92,12 @@ module cw305_top #(
     wire crypt_start;
     wire crypt_done;
     wire crypt_busy;
+
+    // Added for the bridge
+    wire [pINSTR_WIDTH-1] bridge_instruction;
+    wire [pINSTR_WIDTH-1] bridge_data;
+    wire [7:0] bridge_status_i;
+    wire [7:0] bridge_status_o;
 
     wire isout;
     wire [pADDR_WIDTH-pBYTECNT_SIZE-1:0] reg_address;
@@ -175,21 +174,22 @@ module cw305_top #(
        .I_ready                 (crypt_ready),
        .I_done                  (crypt_done),
        .I_busy                  (crypt_busy),
+       // Added for the bridge
+       .I_status                (bridge_status_o),
 
        .O_clksettings           (clk_settings),
        .O_user_led              (led3),
        .O_key                   (crypt_key),
        .O_textin                (crypt_textout),
        .O_cipherin              (),                     // unused
-       .O_start                 (crypt_start)
+       .O_start                 (crypt_start),
+       // Added for the bridge
+       .O_instruction           (bridge_instruction),
+       .O_status                (bridge_status_i),
+       .O_heep_data             (bridge_data)
     );
 
 
-`ifdef ICE40
-    assign usb_clk_buf = usb_clk;
-    assign crypt_clk = usb_clk;
-    assign tio_clkout = usb_clk;
-`else
     clocks U_clocks (
        .usb_clk                 (usb_clk),
        .usb_clk_buf             (usb_clk_buf),
@@ -201,7 +201,6 @@ module cw305_top #(
        .O_cw_clkout             (tio_clkout),
        .O_cryptoclk             (crypt_clk)
     );
-`endif
 
 
 
@@ -228,6 +227,7 @@ module cw305_top #(
   // Cable USB).
 
 
+// #TODO: change this with grheep+bridge modules
 `ifdef GOOGLE_VAULT_AES
    wire aes_clk;
    wire [127:0] aes_key;
@@ -245,7 +245,7 @@ module cw305_top #(
    assign crypt_done = ~aes_busy;
    assign crypt_busy = aes_busy;
 
-   // Example AES Core
+   // Example AES Core -- #TODO : 
    aes_core aes_core (
        .clk             (aes_clk),
        .load_i          (aes_load),
@@ -258,6 +258,27 @@ module cw305_top #(
    );
    assign tio_trigger = aes_busy;
 `endif
+
+   // Bridge instantiation
+   bridge2xheep u_bridge2xheep (
+      .clk(crypt_clk), //#TODO: or USB clock?
+      .rst_n(resetn),
+      .req(req_i),
+      .we(we_i),
+      .be(be_i),
+      .addr(addr_i),
+      .wdata(wdata_i),
+      .gnt(gnt_o),
+      .rvalid(rvalid_o),
+      .rdata(rdata_o),
+      .instr_valid(bridge_status_i[1]),
+      .addr_valid(bridge_status_i[]), //#TODO: define flag for address valid
+      .busy(bridge_status_o[0]),
+      .instruction(bridge_instruction),
+      .new_section_address(),
+      .OBI_rvalid(),
+      .OBI_rdata(bridge_data)
+   );
 
 
 endmodule

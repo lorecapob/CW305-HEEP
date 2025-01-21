@@ -27,15 +27,9 @@ either expressed or implied, of NewAE Technology Inc.
 
 `define REG_CLKSETTINGS                 'h00
 `define REG_USER_LED                    'h01
-`define REG_CRYPT_TYPE                  'h02
-`define REG_CRYPT_REV                   'h03
-`define REG_IDENTIFY                    'h04
-`define REG_CRYPT_GO                    'h05
-`define REG_CRYPT_TEXTIN                'h06
-`define REG_CRYPT_CIPHERIN              'h07
-`define REG_CRYPT_TEXTOUT               'h08
-`define REG_CRYPT_CIPHEROUT             'h09
-`define REG_CRYPT_KEY                   'h0a
-`define REG_BUILDTIME                   'h0b
+`define REG_BRIDGE_STATUS               'h02
+`define REG_PROG_INSTR                  'h03
+`define REG_HEEP_DATA                   'h04
+`define REG_BUILDTIME                   'h05
 
 

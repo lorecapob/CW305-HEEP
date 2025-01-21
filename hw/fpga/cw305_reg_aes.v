@@ -39,7 +39,10 @@ module cw305_reg_aes #(
    parameter pKEY_WIDTH = 128,
    parameter pCRYPT_TYPE = 2,
    parameter pCRYPT_REV = 5,
-   parameter pIDENTIFY = 8'h2e
+   parameter pIDENTIFY = 8'h2e,
+
+   // Added for the bridge
+   parameter pINSTR_WIDTH = 32
 )(
 
 // Interface to cw305_usb_reg_fe:
@@ -66,22 +69,31 @@ module cw305_reg_aes #(
    input  wire                                  I_done,   /* Crypto done. Can be high for one crypto_clk cycle or longer. */
    input  wire                                  I_busy,   /* Crypto busy. */
 
+   // Added for the bridge
+   input reg [7:0]                              I_status,
+
 // register outputs:
    output reg  [4:0]                            O_clksettings,
    output reg                                   O_user_led,
    output wire [pKEY_WIDTH-1:0]                 O_key,
    output wire [pPT_WIDTH-1:0]                  O_textin,
    output wire [pCT_WIDTH-1:0]                  O_cipherin,
-   output wire                                  O_start   /* High for one crypto_clk cycle, indicates text ready. */
+   output wire                                  O_start,   /* High for one crypto_clk cycle, indicates text ready. */
+
+   // Added for the bridge
+   output reg [pINSTR_WIDTH-1:0]                O_instruction,
+   output reg [7:0]                             O_status,
+   output reg [pINSTR_WIDTH-1:0]                O_heep_data
+
 
 );
 
    reg  [7:0]                   reg_read_data;
-   reg  [pCT_WIDTH-1:0]         reg_crypt_cipherin;
-   reg  [pKEY_WIDTH-1:0]        reg_crypt_key;
-   reg  [pPT_WIDTH-1:0]         reg_crypt_textin;
-   reg  [pPT_WIDTH-1:0]         reg_crypt_textout;
-   reg  [pCT_WIDTH-1:0]         reg_crypt_cipherout;
+   //reg  [pCT_WIDTH-1:0]         reg_crypt_cipherin;
+   //reg  [pKEY_WIDTH-1:0]        reg_crypt_key;
+   //reg  [pPT_WIDTH-1:0]         reg_crypt_textin;
+   //reg  [pPT_WIDTH-1:0]         reg_crypt_textout;
+   //reg  [pCT_WIDTH-1:0]         reg_crypt_cipherout;
    reg                          reg_crypt_go_pulse;
    wire                         reg_crypt_go_pulse_crypt;
 
@@ -101,6 +113,7 @@ module cw305_reg_aes #(
    (* ASYNC_REG = "TRUE" *) reg  [1:0] busy_pipe;
 
 
+   //#TODO: remove this?
    always @(posedge crypto_clk)
        done_r <= I_done & pDONE_EDGE_SENSITIVE;
    assign done_pulse = I_done & ~done_r;
@@ -112,6 +125,7 @@ module cw305_reg_aes #(
        end
    end
 
+//#TODO: remove this?
 `ifdef ICE40
    // iCE40 target has just one clock domain, so there's no CDC to worry
    // about; it also can't afford to spare the extra registers:
@@ -143,17 +157,20 @@ module cw305_reg_aes #(
    always @(*) begin
       if (reg_addrvalid && reg_read) begin
          case (reg_address)
+            //#TODO: change registers here to match the bridge requirements
             `REG_CLKSETTINGS:           reg_read_data = O_clksettings;
             `REG_USER_LED:              reg_read_data = O_user_led;
-            `REG_CRYPT_TYPE:            reg_read_data = pCRYPT_TYPE;
-            `REG_CRYPT_REV:             reg_read_data = pCRYPT_REV;
-            `REG_IDENTIFY:              reg_read_data = pIDENTIFY;
-            `REG_CRYPT_GO:              reg_read_data = busy_usb;
-            `REG_CRYPT_KEY:             reg_read_data = reg_crypt_key[reg_bytecnt*8 +: 8];
-            `REG_CRYPT_TEXTIN:          reg_read_data = reg_crypt_textin[reg_bytecnt*8 +: 8];
-            `REG_CRYPT_CIPHERIN:        reg_read_data = reg_crypt_cipherin[reg_bytecnt*8 +: 8];
-            `REG_CRYPT_TEXTOUT:         reg_read_data = reg_crypt_textout_usb[reg_bytecnt*8 +: 8];
-            `REG_CRYPT_CIPHEROUT:       reg_read_data = reg_crypt_cipherout_usb[reg_bytecnt*8 +: 8];
+            `REG_BRIDGE_STATUS:         reg_read_data = O_status;
+            `REG_HEEP_DATA:             reg_read_data = O_heep_data[reg_bytecnt*8 +: 8];
+            //`REG_CRYPT_TYPE:            reg_read_data = pCRYPT_TYPE;
+            //`REG_CRYPT_REV:             reg_read_data = pCRYPT_REV;
+            //`REG_IDENTIFY:              reg_read_data = pIDENTIFY;
+            //`REG_CRYPT_GO:              reg_read_data = busy_usb;
+            //`REG_CRYPT_KEY:             reg_read_data = reg_crypt_key[reg_bytecnt*8 +: 8]; //The notation +: means "from the index reg_bytecnt*8, take 8 bits on the left". Same as reg[i+7:i]
+            //`REG_CRYPT_TEXTIN:          reg_read_data = reg_crypt_textin[reg_bytecnt*8 +: 8];
+            //`REG_CRYPT_CIPHERIN:        reg_read_data = reg_crypt_cipherin[reg_bytecnt*8 +: 8];
+            //`REG_CRYPT_TEXTOUT:         reg_read_data = reg_crypt_textout_usb[reg_bytecnt*8 +: 8];
+            //`REG_CRYPT_CIPHEROUT:       reg_read_data = reg_crypt_cipherout_usb[reg_bytecnt*8 +: 8];
             `REG_BUILDTIME:             reg_read_data = buildtime[reg_bytecnt*8 +: 8];
             default:                    reg_read_data = 0;
          endcase
@@ -175,18 +192,28 @@ module cw305_reg_aes #(
          O_clksettings <= 0;
          O_user_led <= 0;
          reg_crypt_go_pulse <= 1'b0;
+
+         O_status <= 0;
       end
 
       else begin
          if (reg_addrvalid && reg_write) begin
             case (reg_address)
+               //#TODO: change registers here to match the bridge requirements
                `REG_CLKSETTINGS:        O_clksettings <= write_data;
                `REG_USER_LED:           O_user_led <= write_data;
-               `REG_CRYPT_TEXTIN:       reg_crypt_textin[reg_bytecnt*8 +: 8] <= write_data;
-               `REG_CRYPT_CIPHERIN:     reg_crypt_cipherin[reg_bytecnt*8 +: 8] <= write_data;
-               `REG_CRYPT_KEY:          reg_crypt_key[reg_bytecnt*8 +: 8] <= write_data;
+               //`REG_CRYPT_TEXTIN:       reg_crypt_textin[reg_bytecnt*8 +: 8] <= write_data;
+               //`REG_CRYPT_CIPHERIN:     reg_crypt_cipherin[reg_bytecnt*8 +: 8] <= write_data;
+               //`REG_CRYPT_KEY:          reg_crypt_key[reg_bytecnt*8 +: 8] <= write_data;
+
+               // Added for the bridge
+               `REG_BRIDGE_STATUS:      O_status <= write_data;
+               `REG_PROG_INSTR:         O_instruction[reg_bytecnt*8 +: 8] <= write_data;
+               
             endcase
          end
+
+         //#TODO: remove this?
          // REG_CRYPT_GO register is special: writing it creates a pulse. Reading it gives you the "busy" status.
          if ( (reg_addrvalid && reg_write && (reg_address == `REG_CRYPT_GO)) )
             reg_crypt_go_pulse <= 1'b1;
@@ -209,12 +236,10 @@ module cw305_reg_aes #(
       .dst_pulse     (reg_crypt_go_pulse_crypt)
    );
 
-`ifdef ICE40
-    always @(*) busy_usb = I_busy;
-`else
+
    always @(posedge usb_clk)
       {busy_usb, busy_pipe} <= {busy_pipe, I_busy};
-`endif
+
 
 
    `ifdef ILA_REG

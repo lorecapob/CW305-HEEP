@@ -44,6 +44,9 @@
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
 //  ------------------------------
+// Start address of the SOC_CTRL module in the memory map. Defined in mcu-gen.json and soc_ctrl_regs.h
+#define SOC_CTRL_START_ADDRESS 0x20000000
+#define SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET 0xc
 
 // Data types
 // ----------
@@ -71,6 +74,7 @@ void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, Verilat
 
 // ---------- Bridge2Xheep Functions Prototypes -----------
 void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge *req);
+void triggerExitLoop(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
 // ---------------------------------------------
 
 // Global variables
@@ -324,7 +328,11 @@ int main(int argc, char *argv[])
 
         runCycles(1, dut, gen_waves, trace);
         TB_LOG(LOG_MEDIUM, "- triggering boot loop exit...");
-        dut->tb_set_exit_loop();
+        //dut->tb_set_exit_loop();
+
+        // Trigger the exit loop writing in the corresponding memory location
+        triggerExitLoop(dut, gen_waves, trace);
+        
         runCycles(1, dut, gen_waves, trace);
         TB_LOG(LOG_LOW, "Firmware loaded. Running app...");
         break;
@@ -459,6 +467,23 @@ std::string getCmdOption(int argc, char *argv[], const std::string &option)
         }
     }
     return cmd;
+}
+
+void triggerExitLoop(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace)
+{
+    // Set the correct address for the exit loop register
+    dut->new_addr_valid_i = 1;
+    dut->new_section_address_i = SOC_CTRL_START_ADDRESS + SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET;
+    runCycles(1, dut, gen_waves, trace);
+    dut->new_addr_valid_i = 0;
+    runCycles(2, dut, gen_waves, trace);
+
+    // Set the correct instruction for the exit loop register
+    dut->inst_valid_i = 1;
+    dut->instruction_i = 0x1;
+    runCycles(1, dut, gen_waves, trace);
+    dut->inst_valid_i = 0;
+    runCycles(10, dut, gen_waves, trace);
 }
 
 void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge *req)

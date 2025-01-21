@@ -6,8 +6,8 @@ module counter_plus4
     input   logic clk,
     input   logic rst_n,
 
-    input   logic LD_cnt,
-    input   logic EN_cnt,
+    input   logic LOAD,
+    input   logic ENABLE,
     input   logic [31:0] cnt_in,
     output  logic [31:0] cnt_out
 );
@@ -19,9 +19,9 @@ module counter_plus4
         if(~rst_n)
             cnt <= 32'h00000000;
         else 
-            if(LD_cnt)
+            if(LOAD)
                 cnt <= cnt_in;
-            else if(EN_cnt)
+            else if(ENABLE)
                 cnt <= cnt + 32'h00000004;
     end
 
