@@ -25,6 +25,8 @@ module bridge2xheep
     input logic instr_valid,
     input logic addr_valid,
     //input logic data_read,
+    output logic rst_new_address_valid,
+    output logic rst_instr_valid,
 
     output logic busy,
     //output logic data_valid,
@@ -54,6 +56,8 @@ bridge2xheep_cu #() bridge_cu (
     .rst_n(rst_n),
     .instr_valid(instr_valid),
     .addr_valid(addr_valid),
+    .rst_new_addr_valid(rst_new_address_valid),
+    .rst_instr_valid(rst_instr_valid),
     .busy(busy),
     .req(req),
     .we(we),

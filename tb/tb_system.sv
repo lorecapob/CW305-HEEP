@@ -21,13 +21,15 @@ module tb_system #(
     inout logic        exit_valid_o,
     inout logic [31:0] exit_value_o,
 
-    input   logic inst_valid_i,
-    input   logic [31:0] instruction_i,
-    input   logic new_addr_valid_i,
-    input   logic [31:0] new_section_address_i,
-    output  logic busy_o,
-    output  logic OBI_rvalid_o,
-    output  logic [31:0] OBI_rdata_o
+    input  logic        inst_valid_i,
+    input  logic [31:0] instruction_i,
+    input  logic        new_addr_valid_i,
+    input  logic [31:0] new_section_address_i,
+    output logic        busy_o,
+    output logic        OBI_rvalid_o,
+    output logic [31:0] OBI_rdata_o,
+    output logic        rst_new_addr_valid_o,
+    output logic        rst_instr_valid_o
 
 );
   // Include testbench utils
@@ -210,6 +212,8 @@ module tb_system #(
     .rdata(rdata_o),
     .instr_valid(inst_valid_i),
     .addr_valid(new_addr_valid_i),
+    .rst_new_address_valid(rst_new_addr_valid_o),
+    .rst_instr_valid(rst_instr_valid_o),
     .busy(busy_o),
     .instruction(instruction_i),
     .new_section_address(new_section_address_i),

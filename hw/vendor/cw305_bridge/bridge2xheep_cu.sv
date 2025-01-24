@@ -5,6 +5,8 @@ module bridge2xheep_cu #()(
     // Status register flags
     input   logic instr_valid,
     input   logic addr_valid,
+    output  logic rst_new_addr_valid,
+    output  logic rst_instr_valid,
     output  logic busy,
 
     // ##### OBI protocol signals #####
@@ -77,51 +79,36 @@ always_ff @(posedge clk or negedge rst_n) begin : state_transition_logic
 end
 
 always_comb begin: output_generation_logic
+
+    req = 1'b0;
+    we = 1'b0;
+    be = 4'b0;
+    CNT_RSTN = 1'b1;
+    CNT_LD = 1'b0;
+    CNT_EN = 1'b0;
+    INST_REG_RSTN = 1'b1;
+    INST_REG_LD = 1'b0;
+    busy = 1'b0;
+    rst_new_addr_valid = 1'b1;
+    rst_instr_valid = 1'b1;
+
     case(currentState)
         RESET: begin
-            req = 1'b0;
-            we = 1'b0;
-            be = 4'b0;
             CNT_RSTN = 1'b0;
-            CNT_LD = 1'b0;
-            CNT_EN = 1'b0;
             INST_REG_RSTN = 1'b0;
-            INST_REG_LD = 1'b0;
-            busy = 1'b0;
         end
 
         IDLE: begin
-            req = 1'b0;
-            we = 1'b0;
-            be = 4'b0;
-            CNT_RSTN = 1'b1;
-            CNT_LD = 1'b0;
-            CNT_EN = 1'b0;
-            INST_REG_RSTN = 1'b1;
-            INST_REG_LD = 1'b0;
-            busy = 1'b0;
+
         end
 
         SET_COUNTER: begin
-            req = 1'b0;
-            we = 1'b0;
-            be = 4'b0;
-            CNT_RSTN = 1'b1;
             CNT_LD = 1'b1;
-            CNT_EN = 1'b0;
-            INST_REG_RSTN = 1'b1;
-            INST_REG_LD = 1'b0;
-            busy = 1'b0;
+            busy = 1'b1;
+            rst_new_addr_valid = 1'b0;
         end
 
         LD_INSTR: begin
-            req = 1'b0;
-            we = 1'b0;
-            be = 4'b0;
-            CNT_RSTN = 1'b1;
-            CNT_LD = 1'b0;
-            CNT_EN = 1'b0;
-            INST_REG_RSTN = 1'b1;
             INST_REG_LD = 1'b1;
             busy = 1'b1;
         end
@@ -130,24 +117,13 @@ always_comb begin: output_generation_logic
             req = 1'b1;
             we = 1'b1;
             be = 4'b1111;
-            CNT_RSTN = 1'b1;
-            CNT_LD = 1'b0;
-            CNT_EN = 1'b0;
-            INST_REG_RSTN = 1'b1;
-            INST_REG_LD = 1'b0;
             busy = 1'b1;
         end
 
         GNT_RECEIVED: begin
-            req = 1'b0;
-            we = 1'b0;
-            be = 4'b0;
-            CNT_RSTN = 1'b1;
-            CNT_LD = 1'b0;
             CNT_EN = 1'b1;
-            INST_REG_RSTN = 1'b1;
-            INST_REG_LD = 1'b0;
             busy = 1'b1;
+            rst_instr_valid = 1'b0;
         end
 
         default: begin
