@@ -41,6 +41,7 @@ module tb_system_cw305 #(
     output wire        bridge_instr_valid_status
 );
     logic usb_clk = clk_i;
+    logic pushbutton = rst_ni;
 
     cw305_top #(
         .pBYTECNT_SIZE(pBYTECNT_SIZE),
@@ -62,7 +63,7 @@ module tb_system_cw305 #(
         .k16_sel(1'b0),
         .k15_sel(boot_select_i),
         .l14_sel(execute_from_flash_i),
-        .pushbutton(rst_ni),
+        .pushbutton(pushbutton),
         .led1(led1),
         .led2(led2),
         .led3(led3),

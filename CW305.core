@@ -16,9 +16,6 @@ description: Top-level file for CW305 HEEP
 filesets:
   # The fileset containing the top-level HDL files
   rtl:
-    depend:
-    # TODO: così facendo prende tutti i file di gr_heep_top?
-    - polito:gr_heep:gr_heep
     files:
     # Bridge files
     - hw/vendor/cw305_bridge/instr_reg
@@ -32,6 +29,24 @@ filesets:
     - hw/fpga/cw305_reg_aes
     - hw/fpga/cw305_top
     file_type: verilogSource
+
+  # GR-HEEP RTL
+  rtl-gr-heep:
+    depend:
+    - polito:gr_heep:packages
+    - polito:gr_heep:peripherals
+    - polito:gr_heep:ext_bus
+    files:
+    - hw/top/gr_heep_top.sv
+    - hw/pad-ring/pad_ring.sv
+    file_type: systemVerilogSource
+
+  # X-HEEP RTL (separated to avoid Verible errors)
+  rtl-x-heep:
+    depend:
+    - openhwgroup.org:systems:core-v-mini-mcu
+    - x-heep::packages
+    - x-heep:ip:pad_control
 
   # RTL testbench system
   tb-system-cw305:
@@ -76,6 +91,8 @@ targets:
   default: &default
     filesets:
     - rtl
+    - rtl-gr-heep
+    - rtl-x-heep
     toplevel: cw305_top
 
   # Verilator C++ testbench for RTL simulation
@@ -117,7 +134,7 @@ targets:
         - '--x-initial unique'
         #- '--threads 2' # only use with Verilator v5.XXX
         - '--exe'
-        - 'gr_heep_tb.cpp'
+        - 'cw305_tb.cpp'
         - '-Wall'
         - '-Wpedantic'
         - '-LDFLAGS "-pthread -lutil -lelf"'

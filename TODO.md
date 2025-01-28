@@ -15,3 +15,4 @@
 - [x] Create SV wrap for the CW305
 - [x] Create C++ testbench for the CW305
 - [x] Create .core file for the CW305 and add commands in makefile
+- [ ] Fix the DPI error in the testbench

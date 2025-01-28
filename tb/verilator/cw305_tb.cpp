@@ -41,7 +41,7 @@
 #define EXEC_FROM_FLASH 0 // 0: do not execute from flash
 #define RUN_CYCLES 500
 // #define TB_HIER_NAME "TOP.tb_system" // Replaced with the cw305 DUT
-#define TB_HIER_NAME "TOP.cw305_top"
+#define TB_HIER_NAME "TOP.tb_system_cw305"
 // -------- Bridge2Xheep --------
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
@@ -265,13 +265,13 @@ int main(int argc, char *argv[])
     }
 
     // Set scope for DPI functions
-    svSetScope(svGetScopeFromName(TB_HIER_NAME));
-    svScope scope = svGetScope();
-    if (scope == 0)
-    {
-        TB_ERR("svSetScope(): failed to set scope for DPI functions to %s", TB_HIER_NAME);
-        exit(EXIT_FAILURE);
-    }
+    // svSetScope(svGetScopeFromName(TB_HIER_NAME));
+    // svScope scope = svGetScope();
+    // if (scope == 0)
+    // {
+    //     TB_ERR("svSetScope(): failed to set scope for DPI functions to %s", TB_HIER_NAME);
+    //     exit(EXIT_FAILURE);
+    // }
 
     // Print testbench configuration
     // -----------------------------
@@ -309,20 +309,28 @@ int main(int argc, char *argv[])
         while (hex_file) // This loop goes on until the end of file is reached
         {
             // Read from the firmware file until a new instruction or address is completely available.
-            while (!req->valid || !req->addr_valid)
+            while (!req->valid && !req->addr_valid)
             {
                 // Generate clock
                 clkGen(dut);
 
-                // Call the method to read the firmware file. No trace dump here.
+                // Call the method to read the firmware file. No dut evaluation here.
                 genReqBridge(hex_file, dut, drv, req);
             }
+            // Debug
+            printf("New Section Address: %x\n", req->address);
+            printf("Instruction: %x\n", req->instruction);
 
+            // Send the instruction to the DUT only if the address is in the correct range
             if (req->address >= 0x180)
             {
-                // Send data to the cw305
+                // Send the instruction 1 byte at the time                
                 sendInstrByte(dut, gen_waves, trace, req);
+                printf("Instruction sent\n");
             }
+            
+            req->valid = 0;
+            req->addr_valid = 0;
 
         }
 
@@ -505,6 +513,7 @@ void sendInstrByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trac
         // Reset comunications flags and the request flags
         dut->usb_cen    = 1;
         dut->usb_wrn    = 1;
+        //runCycles(1, dut, gen_waves, trace);
         req->valid      = 0;
         req->addr_valid = 0;
     }
