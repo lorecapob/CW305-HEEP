@@ -2,10 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// File: gr_heep_tb.cpp
-// Author: Michele Caon, Luigi Giuffrida
-// Date: 16/10/2024
-// Description: Verilator C++ testbench for GR-HEEP
+// File: cw305_tb.cpp
+// Author: Lorenzo Capobianco
+// Date: 24/01/2025
+// Description: Verilator C++ testbench for CW305 board
 
 // System libraries
 #include <cstdlib>
@@ -21,7 +21,8 @@
 
 // User libraries
 #include "tb_macros.hh"
-#include "Vtb_system.h"
+//#include "Vtb_system.h" // Replaced with the cw305 DUT
+#include "Vtb_system_cw305.h"
 // For the bridge
 #include <iostream>
 #include <fstream>
@@ -39,7 +40,8 @@
 #define BOOT_SEL 0        // 0: JTAG boot
 #define EXEC_FROM_FLASH 0 // 0: do not execute from flash
 #define RUN_CYCLES 500
-#define TB_HIER_NAME "TOP.tb_system"
+// #define TB_HIER_NAME "TOP.tb_system" // Replaced with the cw305 DUT
+#define TB_HIER_NAME "TOP.cw305_top"
 // -------- Bridge2Xheep --------
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
@@ -47,6 +49,10 @@
 // Start address of the SOC_CTRL module in the memory map. Defined in mcu-gen.json and soc_ctrl_regs.h
 #define SOC_CTRL_START_ADDRESS 0x20000000
 #define SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET 0xc
+// CW305 registers addresses
+#define REG_BRIDGE_STATUS 0x2
+#define REG_PROG_INSTR 0x3
+
 
 // Data types
 // ----------
@@ -63,18 +69,24 @@ enum boot_mode_e
 std::string getCmdOption(int argc, char *argv[], const std::string &option);
 
 // DUT initialization
-void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash);
+void initDut(Vtb_system_cw305 *dut, uint8_t boot_mode, uint8_t exec_from_flash);
 
 // Generate clock and reset
-void clkGen(Vtb_system *dut);
-void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
+void clkGen(Vtb_system_cw305 *dut);
+void rstDut(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace);
 
 // Run simulation for the specififed number of cycles
-void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
+void runCycles(unsigned int ncycles, Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace);
 
 // ---------- Bridge2Xheep Functions Prototypes -----------
-void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge *req);
-void triggerExitLoop(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace);
+// This function reads the main.hex firmware file and extracts instructions on 32 bit 
+void genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBridge *req);
+
+// This function sends the instruction extracted by the previous function to the DUT, 1 byte at the time
+void sendInstrByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req);
+
+// This function writes "1" in the memory location corresponding to the boot_exit_loop flag
+void triggerExitLoop(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req);
 // ---------------------------------------------
 
 // Global variables
@@ -236,7 +248,8 @@ int main(int argc, char *argv[])
     logger.setSimContext(cntx);
 
     // Instantiate the DUT
-    Vtb_system *dut = new Vtb_system(cntx);
+    //Vtb_system *dut = new Vtb_system(cntx);
+    Vtb_system_cw305 *dut = new Vtb_system_cw305(cntx);
     // ----------- Instantiate Bridge2Xheep components ---------
     Drv *drv = new Drv(dut);
     ReqBridge *req = new ReqBridge;
@@ -291,39 +304,26 @@ int main(int argc, char *argv[])
         TB_LOG(LOG_MEDIUM, "- writing firmware to SRAM...");
         //dut->tb_loadHEX(firmware_file.c_str());
 
-        // Firmware loading procedure replaced by the SW bridge
+
+        // Firmware loading procedure replaced by the HW bridge
         while (hex_file) // This loop goes on until the end of file is reached
         {
-            // Generate clock
-            clkGen(dut);
-
-            // Call the method to generate the request
-            genReqBridge(hex_file, dut, drv, req);
-
-            // Send request to the driver
-            //drv->drive(req);
-            // Commented since in the hw implementation the bridge start a new transation automatically when
-            // the instruction valid flag is set.
-            
-            if (dut->clk_i)
+            // Read from the firmware file until a new instruction or address is completely available.
+            while (!req->valid || !req->addr_valid)
             {
-                if (req->address >= 0x180)
-                {
-                    dut->inst_valid_i = req->valid;
-                    dut->instruction_i = req->instruction;
-                    dut->new_addr_valid_i = req->addr_valid;
-                    dut->new_section_address_i = req->address;
-                }
-                req->valid = 0;
-                req->addr_valid = 0;
+                // Generate clock
+                clkGen(dut);
+
+                // Call the method to read the firmware file. No trace dump here.
+                genReqBridge(hex_file, dut, drv, req);
             }
 
-            // Evaluate the DUT
-            dut->eval();
+            if (req->address >= 0x180)
+            {
+                // Send data to the cw305
+                sendInstrByte(dut, gen_waves, trace, req);
+            }
 
-            // Save waveforms
-            if (gen_waves) trace->dump(cntx->time());
-            cntx->timeInc(1);
         }
 
         runCycles(1, dut, gen_waves, trace);
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
         //dut->tb_set_exit_loop();
 
         // Trigger the exit loop writing in the corresponding memory location
-        triggerExitLoop(dut, gen_waves, trace);
+        triggerExitLoop(dut, gen_waves, trace, req);
         
         runCycles(1, dut, gen_waves, trace);
         TB_LOG(LOG_LOW, "Firmware loaded. Running app...");
@@ -393,19 +393,15 @@ int main(int argc, char *argv[])
     exit(exit_val);
 }
 
-void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash)
+void initDut(Vtb_system_cw305 *dut, uint8_t boot_mode, uint8_t exec_from_flash)
 {
     // Clock and reset
-    dut->clk_i = 0;
-    dut->rst_ni = 1;
-    /*
-    // Bridge Signals
-    dut->req_i = 0;
-    dut->we_i = 0;
-    dut->be_i = 0;
-    dut->addr_i = 0;
-    dut->wdata_i = 0;
-    */
+    dut->clk_i          = 0;
+    dut->rst_ni         = 1;
+    dut->usb_rdn        = 1;
+    dut->usb_wrn        = 1;
+    dut->usb_cen        = 1;
+    dut->usb_trigger    = 0;
 
     // Static configuration
     dut->boot_select_i = boot_mode == BOOT_MODE_FLASH;
@@ -413,12 +409,12 @@ void initDut(Vtb_system *dut, uint8_t boot_mode, uint8_t exec_from_flash)
     dut->eval();
 }
 
-void clkGen(Vtb_system *dut)
+void clkGen(Vtb_system_cw305 *dut)
 {
     dut->clk_i ^= 1;
 }
 
-void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace)
+void rstDut(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace)
 {
     dut->rst_ni = 1;
     TB_LOG(LOG_MEDIUM, "Resetting DUT...");
@@ -431,7 +427,7 @@ void rstDut(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace)
     runCycles(POST_RESET_CYCLES, dut, gen_waves, trace);
 }
 
-void runCycles(unsigned int ncycles, Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace)
+void runCycles(unsigned int ncycles, Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace)
 {
     VerilatedContext *cntx = dut->contextp();
     for (unsigned int i = 0; i < (2 * ncycles); i++)
@@ -469,30 +465,73 @@ std::string getCmdOption(int argc, char *argv[], const std::string &option)
     return cmd;
 }
 
-void triggerExitLoop(Vtb_system *dut, uint8_t gen_waves, VerilatedFstC *trace)
+void sendInstrByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
 {
-    // Set the correct address for the exit loop register
-    dut->new_addr_valid_i = 1;
-    dut->new_section_address_i = SOC_CTRL_START_ADDRESS + SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET;
-    runCycles(1, dut, gen_waves, trace);
-    dut->new_addr_valid_i = 0;
-    runCycles(2, dut, gen_waves, trace);
+    // According to the documentation, the address sent to cw305_top has a parallelism of 21 bit.
+    // The 2 LSBs represent the BYTECNT parameter, while the remaining part is the register address.
 
-    // Set the correct instruction for the exit loop register
-    dut->inst_valid_i = 1;
-    dut->instruction_i = 0x1;
-    runCycles(1, dut, gen_waves, trace);
-    dut->inst_valid_i = 0;
-    runCycles(10, dut, gen_waves, trace);
+    // Check if the cw305 is ready to accept new instructions
+    if (!dut->bridge_instr_valid_status)
+    {
+        for (int i = 0; i < 4; i++){
+            dut->usb_cen    = 0;
+            dut->usb_wrn    = 0;
+            dut->usb_addr   = (REG_PROG_INSTR << 2) + i;
+            
+            if (req->addr_valid){
+                dut->usb_data = (req->address >> (i * 8)) & 0xFF; // Extract 8 bits at a time
+            }
+            else if (req->valid){
+                dut->usb_data = (req->instruction >> (i * 8)) & 0xFF; // Extract 8 bits at a time
+            }
+            
+            runCycles(1, dut, gen_waves, trace);
+        }
+
+        // Set 1 to the status register flag
+        dut->usb_cen    = 0;
+        dut->usb_wrn    = 0;
+        dut->usb_addr   = (REG_BRIDGE_STATUS << 2);
+        if (req->addr_valid){
+            // Write 1 in brige_status[2]
+            dut->usb_data = (1 << 2);
+        }
+        else if (req->valid){
+            // Write 1 in brige_status[1]
+            dut->usb_data = (1 << 1);
+        }
+        runCycles(1, dut, gen_waves, trace);
+
+        // Reset comunications flags and the request flags
+        dut->usb_cen    = 1;
+        dut->usb_wrn    = 1;
+        req->valid      = 0;
+        req->addr_valid = 0;
+    }
+    
 }
 
-void genReqBridge(std::ifstream &hex_file, Vtb_system *dut, Drv *drv, ReqBridge *req)
+void triggerExitLoop(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
+{
+    // #TODO: basta richiamare la funzione di sopra con i corretti valori per indirizzo e dato
+    req->address = SOC_CTRL_START_ADDRESS + SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET;
+    req->addr_valid = 1;
+    sendInstrByte(dut, gen_waves, trace, req);
+    req->addr_valid = 0;
+
+    req->instruction = 0x1;
+    req->valid = 1;
+    sendInstrByte(dut, gen_waves, trace, req);
+    req->valid = 0;
+}
+
+void genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBridge *req)
 {
     if (hex_file)
     {
         if (!dut->clk_i)
         {
-            if (!(dut->busy_o))
+            if (!(dut->bridge_instr_valid_status))
             {
                 isValidChar = 1;
 

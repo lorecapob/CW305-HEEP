@@ -1,0 +1,156 @@
+[*]
+[*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
+[*] Sat Jan 25 09:48:50 2025
+[*]
+[dumpfile] "/home/lorenzocapobianco/Progetti/Tesi_Magistrale/CW305-HEEP/build/polito_gr_heep_gr_heep_0.1.3/sim-verilator/logs/waves.fst"
+[dumpfile_mtime] "Fri Jan 24 10:44:03 2025"
+[dumpfile_size] 4326188
+[savefile] "/home/lorenzocapobianco/Progetti/Tesi_Magistrale/CW305-HEEP/tb/misc/verilator-waves_bridge_heep_only.gtkw"
+[timestart] 168442
+[size] 1920 1001
+[pos] -27 -24
+*-3.483354 168470 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.tb_system.
+[treeopen] TOP.tb_system.u_bridge2xheep.
+[treeopen] TOP.tb_system.u_gr_heep_top.
+[treeopen] TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.
+[treeopen] TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.
+[treeopen] TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.
+[treeopen] TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.hw2reg.
+[treeopen] TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.reg2hw.
+[treeopen] TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.
+[treeopen] TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.
+[sst_width] 273
+[signals_width] 377
+[sst_expanded] 1
+[sst_vpaned_height] 297
+@800200
+-TOP_LEVEL_TESTBENCH
+@28
+TOP.clk_i
+TOP.rst_ni
+TOP.boot_select_i
+TOP.execute_from_flash_i
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop(0)
+@1000200
+-TOP_LEVEL_TESTBENCH
+@800200
+-bridge2xheep
+@29
+TOP.tb_system.u_bridge2xheep.clk
+@28
+TOP.tb_system.u_bridge2xheep.rst_n
+TOP.tb_system.u_bridge2xheep.instr_valid
+TOP.tb_system.u_bridge2xheep.addr_valid
+@22
+TOP.tb_system.u_bridge2xheep.new_section_address[31:0]
+@100000028
+TOP.tb_system.u_bridge2xheep.bridge_cu.currentState[5:0]
+@28
+TOP.tb_system.u_bridge2xheep.busy
+@22
+TOP.tb_system.u_bridge2xheep.addr[31:0]
+TOP.tb_system.u_bridge2xheep.wdata[31:0]
+@28
+TOP.tb_system.u_bridge2xheep.req
+TOP.tb_system.u_bridge2xheep.we
+@22
+TOP.tb_system.u_bridge2xheep.be[3:0]
+@28
+TOP.tb_system.u_bridge2xheep.gnt
+TOP.tb_system.u_bridge2xheep.rvalid
+@22
+TOP.tb_system.u_bridge2xheep.rdata[31:0]
+@28
+TOP.tb_system.u_bridge2xheep.OBI_rvalid
+@22
+TOP.tb_system.u_bridge2xheep.OBI_rdata[31:0]
+TOP.tb_system.u_bridge2xheep.instruction[31:0]
+TOP.tb_system.u_bridge2xheep.internal_addr[31:0]
+@28
+TOP.tb_system.u_bridge2xheep.rst_new_address_valid
+TOP.tb_system.u_bridge2xheep.rst_instr_valid
+@1000200
+-bridge2xheep
+@800200
+-gr_heep_top
+@28
+TOP.tb_system.u_gr_heep_top.clk_i
+TOP.tb_system.u_gr_heep_top.rst_ni
+TOP.tb_system.u_gr_heep_top.boot_select_i
+@22
+TOP.tb_system.u_gr_heep_top.addr_i[31:0]
+TOP.tb_system.u_gr_heep_top.wdata_i[31:0]
+TOP.tb_system.u_gr_heep_top.be_i[3:0]
+@28
+TOP.tb_system.u_gr_heep_top.req_i
+TOP.tb_system.u_gr_heep_top.we_i
+TOP.tb_system.u_gr_heep_top.gnt_o
+@1000200
+-gr_heep_top
+@800200
+-gr_heep_master_resp - PORT
+@28
+TOP.tb_system.u_gr_heep_top.gr_heep_master_resp(0).gnt
+@22
+TOP.tb_system.u_gr_heep_top.gr_heep_master_resp(0).rdata[31:0]
+@28
+TOP.tb_system.u_gr_heep_top.gr_heep_master_resp(0).rvalid
+@1000200
+-gr_heep_master_resp - PORT
+@800200
+-heep_slave_req(0)
+@22
+TOP.tb_system.u_gr_heep_top.heep_slave_req(0).addr[31:0]
+TOP.tb_system.u_gr_heep_top.heep_slave_req(0).wdata[31:0]
+TOP.tb_system.u_gr_heep_top.heep_slave_req(0).be[3:0]
+@28
+TOP.tb_system.u_gr_heep_top.heep_slave_req(0).req
+TOP.tb_system.u_gr_heep_top.heep_slave_req(0).we
+@1000200
+-heep_slave_req(0)
+@800200
+-heep_slave_rsp(0)
+@28
+TOP.tb_system.u_gr_heep_top.heep_slave_rsp(0).gnt
+@22
+TOP.tb_system.u_gr_heep_top.heep_slave_rsp(0).rdata[31:0]
+@28
+TOP.tb_system.u_gr_heep_top.heep_slave_rsp(0).rvalid
+@1000200
+-heep_slave_rsp(0)
+@800200
+-ram_0
+@28
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.clk_i
+@22
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.addr_i[12:0]
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.wdata_i[31:0]
+@28
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.req_i
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.we_i
+@22
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.be_i[3:0]
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.rdata_o[31:0]
+@28
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.rst_ni
+@1000200
+-ram_0
+@800200
+-xheep_program_counter
+@22
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_core.pc_if[31:0]
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_core.pc_id[31:0]
+@1000200
+-xheep_program_counter
+@800200
+-soc_ctrl_i_exit_loop
+@28
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.hw2reg.boot_exit_loop.d
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.hw2reg.boot_exit_loop.de
+TOP.tb_system.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.reg2hw.boot_exit_loop.q
+@1000200
+-soc_ctrl_i_exit_loop
+[pattern_trace] 1
+[pattern_trace] 0

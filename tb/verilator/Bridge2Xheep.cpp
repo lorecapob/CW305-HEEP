@@ -23,7 +23,7 @@ RespBridge::~RespBridge()
 {
 }
 
-Drv::Drv(Vtb_system *dut)
+Drv::Drv(Vtb_system_cw305 *dut)
 {
     this->dut = dut;
     this->req = NULL;

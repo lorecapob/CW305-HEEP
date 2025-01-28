@@ -27,7 +27,7 @@ either expressed or implied, of NewAE Technology Inc.
 
 
 `default_nettype none
-`timescale 1ns / 1ns
+//`timescale 1ns / 1ns
 
 module clocks (
     input  wire         usb_clk,
@@ -57,7 +57,7 @@ module clocks (
                              ((I_clock_reg[0] == 1'b0) && (I_k16_sel == 1'b1)) ? 1 : //DIP = on
                              0; //Default off
 
-`ifdef __ICARUS__
+`ifdef VERILATOR
     assign O_cryptoclk = cclk_src_is_ext? I_cw_clkin : I_pll_clk1;
     assign O_cw_clkout = cclk_output_ext? O_cryptoclk : 1'b0;
     assign usb_clk_bufg = usb_clk;

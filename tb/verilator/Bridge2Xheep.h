@@ -2,7 +2,7 @@
 #define BRIDGE2XHEEP_H
 
 #include <verilated.h>
-#include "Vtb_system.h"
+#include "Vtb_system_cw305.h"
 
 class ReqBridge
 {
@@ -35,14 +35,14 @@ public:
 class Drv
 {
 private:
-    Vtb_system *dut;
+    Vtb_system_cw305 *dut;
     ReqBridge *req;
 
 public:
     int state = 0;
     int busy = 0;
 
-    Drv(Vtb_system *dut);
+    Drv(Vtb_system_cw305 *dut);
     ~Drv();
 
     void drive(ReqBridge *req);

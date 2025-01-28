@@ -195,8 +195,6 @@ module tb_system #(
 
   );
 
-  // Some modifications are needed. All the OBI signals have to move from the PORT section to internal signals
-  // and the bridge MCU side signals have to be added
 
   // Bridge instantiation
   bridge2xheep u_bridge2xheep (

@@ -26,7 +26,7 @@ either expressed or implied, of NewAE Technology Inc.
 */
 
 `default_nettype none
-`timescale 1ns / 1ps
+//`timescale 1ns / 1ps
 
 module cw305_usb_reg_fe #(
    parameter pADDR_WIDTH = 21,

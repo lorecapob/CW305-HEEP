@@ -26,7 +26,7 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of NewAE Technology Inc.
 */
 
-`timescale 1ns / 1ps
+//`timescale 1ns / 1ps
 `default_nettype none 
 
 module cw305_top #(
@@ -65,9 +65,9 @@ module cw305_top #(
     //input wire                        pll_clk2,       //PLL Clock Channel #2 (unused in this example)
 
     // 20-Pin Connector Stuff
-    output wire                         tio_trigger,
-    output wire                         tio_clkout,
-    input  wire                         tio_clkin
+    // output wire                         tio_trigger,
+    // output wire                         tio_clkout,
+    input  wire                         tio_clkin,
 
     // Block Interface to Crypto Core
 // `ifdef USE_BLOCK_INTERFACE
@@ -82,7 +82,11 @@ module cw305_top #(
 //     input wire                          crypto_busy,
 //     input wire                          crypto_idle
 // `endif
-    );
+
+    // Exit signals. Needed for the testbench as output port
+    output wire        exit_valid_o,
+    output wire [31:0] exit_value_o
+  );
 
 
    //  wire [pKEY_WIDTH-1:0] crypt_key;
@@ -95,13 +99,13 @@ module cw305_top #(
    //  wire crypt_busy;
 
     // Added for the bridge
-    wire [pINSTR_WIDTH-1] bridge_instruction;
-    wire                  bridge_rst_instr_valid;
-    wire [pINSTR_WIDTH-1] bridge_new_address;
-    wire                  bridge_rst_new_address_valid;
+    wire [pINSTR_WIDTH-1:0] bridge_instruction;
+    wire                    bridge_rst_instr_valid;
+    wire [pINSTR_WIDTH-1:0] bridge_new_address;
+    wire                    bridge_rst_new_address_valid;
 
-    //wire [pINSTR_WIDTH-1] bridge_data;
-    //wire [pINSTR_WIDTH-1] bridge_data_valid; #TODO: servono?
+    wire [pINSTR_WIDTH-1:0] bridge_data;
+    wire                    bridge_data_valid;
     wire [7:0] bridge_status;
     // --------------------------------
 
@@ -114,7 +118,9 @@ module cw305_top #(
     wire reg_read;
     wire reg_write;
     wire [4:0] clk_settings;
-    wire heep_clk;    
+    wire heep_clk;
+    wire usb_clk_buf;
+    wire [7:0] usb_dout;
 
     wire resetn = pushbutton;
     wire reset = !resetn;
@@ -125,7 +131,7 @@ module cw305_top #(
     always @(posedge usb_clk_buf) usb_timer_heartbeat <= usb_timer_heartbeat +  25'd1;
     assign led1 = usb_timer_heartbeat[24];
 
-    // CRYPT CLK Heartbeat
+    // HEEP CLK Heartbeat
     reg [22:0] heep_clk_heartbeat;
     always @(posedge heep_clk) heep_clk_heartbeat <= heep_clk_heartbeat +  23'd1;
     assign led2 = heep_clk_heartbeat[22];
@@ -180,6 +186,7 @@ module cw305_top #(
       //  .I_ready                 (crypt_ready),
       //  .I_done                  (crypt_done),
       //  .I_busy                  (crypt_busy),
+      .I_heep_data              (bridge_data),
       .I_reset_new_addr_valid   (bridge_rst_new_address_valid),
       .I_reset_instr_valid      (bridge_rst_instr_valid),
 
@@ -191,9 +198,8 @@ module cw305_top #(
       //  .O_start                 (crypt_start),
        // Added for the bridge
        .O_instruction           (bridge_instruction),
-       .O_new_addr              (bridge_new_address),
-       .O_status                (bridge_status),
-       .O_heep_data             (bridge_data)
+       .O_status                (bridge_status)
+       
     );
 
 
@@ -205,7 +211,7 @@ module cw305_top #(
        .I_clock_reg             (clk_settings),
        .I_cw_clkin              (tio_clkin),
        .I_pll_clk1              (pll_clk1),
-       .O_cw_clkout             (tio_clkout),
+       .O_cw_clkout             (),
        .O_cryptoclk             (heep_clk)
     );
 
@@ -266,13 +272,13 @@ module cw305_top #(
 //    assign tio_trigger = aes_busy;
 // `endif
 
-  // Static configuration
-  wire boot_select_i;
-  wire execute_from_flash_i;
+  // Static configuration. The board has a 4-item DIP switch, but the values j16_sel and k16_sel
+  // are used to select the clock sources, so only the signals k15_sel and l14_sel are available
+  // for the user.
+  wire boot_select_i = k15_sel;
+  wire execute_from_flash_i = l14_sel;
 
-  // Exit signals
-  wire        exit_valid_o;
-  wire [31:0] exit_value_o;
+  
 
   // INTERNAL SIGNALS
   // ----------------
@@ -438,12 +444,14 @@ module cw305_top #(
 
     .gnt_o                (gnt_o),
     .rvalid_o             (rvalid_o),
-    .rdata_o              (rdata_o),
+    .rdata_o              (rdata_o)
 
   );
 
   // Some modifications are needed. All the OBI signals have to move from the PORT section to internal signals
   // and the bridge MCU side signals have to be added
+
+  assign bridge_new_address = bridge_instruction;
 
   // Bridge instantiation
   bridge2xheep u_bridge2xheep (
@@ -465,7 +473,7 @@ module cw305_top #(
     .addr_valid(bridge_status[2]),
     .rst_new_address_valid(bridge_rst_new_address_valid),
     .rst_instr_valid(bridge_rst_instr_valid),
-    .busy(bridge_status[0]),
+    .busy(/*bridge_status[0]*/),
     .instruction(bridge_instruction),
     .new_section_address(bridge_new_address),
     .OBI_rvalid(bridge_data_valid),

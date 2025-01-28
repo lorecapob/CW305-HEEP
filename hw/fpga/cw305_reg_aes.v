@@ -27,7 +27,7 @@ either expressed or implied, of NewAE Technology Inc.
 */
 
 `default_nettype none
-`timescale 1ns / 1ps
+//`timescale 1ns / 1ps
 `include "cw305_aes_defines.v"
 
 module cw305_reg_aes #(
@@ -68,6 +68,7 @@ module cw305_reg_aes #(
    // input  wire                                  I_ready,  /* Crypto core ready. Tie to '1' if not used. */
    // input  wire                                  I_done,   /* Crypto done. Can be high for one crypto_clk cycle or longer. */
    // input  wire                                  I_busy,   /* Crypto busy. */
+   input reg [pINSTR_WIDTH-1:0]                 I_heep_data,
    
    // Added for the bridge
    input wire                                   I_reset_new_addr_valid,
@@ -84,9 +85,7 @@ module cw305_reg_aes #(
 
    // Added for the bridge
    output reg [pINSTR_WIDTH-1:0]                O_instruction,
-   output reg [pINSTR_WIDTH-1:0]                O_new_addr,
-   output reg [7:0]                             O_status,
-   output reg [pINSTR_WIDTH-1:0]                O_heep_data
+   output reg [7:0]                             O_status
 
 
 );
@@ -106,7 +105,7 @@ module cw305_reg_aes #(
    // wire                         crypt_go_pulse;
    // reg                          go_r;
    // reg                          go;
-   wire [31:0]                  buildtime;
+   wire [31:0]                  buildtime = 0;
 
    // (* ASYNC_REG = "TRUE" *) reg  [pKEY_WIDTH-1:0] reg_crypt_key_crypt;
    // (* ASYNC_REG = "TRUE" *) reg  [pPT_WIDTH-1:0] reg_crypt_textin_crypt;
@@ -161,10 +160,10 @@ module cw305_reg_aes #(
       if (reg_addrvalid && reg_read) begin
          case (reg_address)
             //#TODO: change registers here to match the bridge requirements
-            `REG_CLKSETTINGS:           reg_read_data = O_clksettings;
-            `REG_USER_LED:              reg_read_data = O_user_led;
+            `REG_CLKSETTINGS:           reg_read_data = {{3{1'b0}}, O_clksettings}; // Zero-extend to 8 bits
+            `REG_USER_LED:              reg_read_data = {{7{1'b0}}, O_user_led}; // Zero-extend to 8 bits
             `REG_BRIDGE_STATUS:         reg_read_data = O_status;
-            `REG_HEEP_DATA:             reg_read_data = O_heep_data[reg_bytecnt*8 +: 8];
+            `REG_HEEP_DATA:             reg_read_data = I_heep_data[reg_bytecnt*8 +: 8];
             `REG_BUILDTIME:             reg_read_data = buildtime[reg_bytecnt*8 +: 8];
             default:                    reg_read_data = 0;
          endcase
@@ -189,18 +188,16 @@ module cw305_reg_aes #(
 
          O_status <= 0;
          O_instruction <= 0;
-         O_new_addr <= 0;
       end
 
       else begin
          if (reg_addrvalid && reg_write) begin
             case (reg_address)
                //#TODO: change registers here to match the bridge requirements
-               `REG_CLKSETTINGS:        O_clksettings <= write_data;
-               `REG_USER_LED:           O_user_led <= write_data;
+               `REG_CLKSETTINGS:        O_clksettings <= write_data[4:0];
+               `REG_USER_LED:           O_user_led <= write_data[0];
                `REG_BRIDGE_STATUS:      O_status <= write_data;
                `REG_PROG_INSTR:         O_instruction[reg_bytecnt*8 +: 8] <= write_data;
-               `REG_PROG_NEW_ADDR:      O_new_addr[reg_bytecnt*8 +: 8] <= write_data;
                
             endcase
          end

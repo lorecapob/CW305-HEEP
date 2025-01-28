@@ -29,8 +29,7 @@ either expressed or implied, of NewAE Technology Inc.
 `define REG_USER_LED                    'h01
 `define REG_BRIDGE_STATUS               'h02
 `define REG_PROG_INSTR                  'h03
-`define REG_PROG_NEW_ADDR               'h04
-`define REG_HEEP_DATA                   'h05
-`define REG_BUILDTIME                   'h06
+`define REG_HEEP_DATA                   'h04
+`define REG_BUILDTIME                   'h05
 
 
