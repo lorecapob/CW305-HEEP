@@ -198,6 +198,7 @@ module cw305_top #(
       //  .O_start                 (crypt_start),
        // Added for the bridge
        .O_instruction           (bridge_instruction),
+       .O_address               (bridge_new_address),
        .O_status                (bridge_status)
        
     );
@@ -450,8 +451,6 @@ module cw305_top #(
 
   // Some modifications are needed. All the OBI signals have to move from the PORT section to internal signals
   // and the bridge MCU side signals have to be added
-
-  assign bridge_new_address = bridge_instruction;
 
   // Bridge instantiation
   bridge2xheep u_bridge2xheep (

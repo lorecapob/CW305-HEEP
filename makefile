@@ -178,13 +178,13 @@ $(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK)
 ## Build simulation model (do not launch simulation)
 .PHONY: verilator-build
 verilator-build: $(GR_HEEP_GEN_LOCK)
-	$(FUSESOC) run --no-export --target sim --tool verilator --build $(FUSESOC_FLAGS) polito:gr_heep:gr_heep \
+	$(FUSESOC) run --no-export --target sim --tool verilator --build $(FUSESOC_FLAGS) polito:cw305_heep:cw305_heep \
 		$(FUSESOC_ARGS)
 
 ## Build simulation model and launch simulation
 .PHONY: verilator-sim
 verilator-sim: | check-firmware verilator-build .verilator-check-params
-	$(FUSESOC) run --no-export --target sim --tool verilator --run $(FUSESOC_FLAGS) polito:gr_heep:gr_heep \
+	$(FUSESOC) run --no-export --target sim --tool verilator --run $(FUSESOC_FLAGS) polito:cw305_heep:cw305_heep \
 		--log_level=$(LOG_LEVEL) \
 		--firmware=$(FIRMWARE) \
 		--boot_mode=$(BOOT_MODE) \
@@ -196,7 +196,7 @@ verilator-sim: | check-firmware verilator-build .verilator-check-params
 ## Launch simulation
 .PHONY: verilator-run
 verilator-run: | check-firmware .verilator-check-params
-	$(FUSESOC) run --no-export --target sim --tool verilator --run $(FUSESOC_FLAGS) polito:gr_heep:gr_heep \
+	$(FUSESOC) run --no-export --target sim --tool verilator --run $(FUSESOC_FLAGS) polito:cw305_heep:cw305_heep \
 		--log_level=$(LOG_LEVEL) \
 		--firmware=$(FIRMWARE) \
 		--boot_mode=$(BOOT_MODE) \

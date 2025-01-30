@@ -85,6 +85,7 @@ module cw305_reg_aes #(
 
    // Added for the bridge
    output reg [pINSTR_WIDTH-1:0]                O_instruction,
+   output reg [pINSTR_WIDTH-1:0]                O_address,
    output reg [7:0]                             O_status
 
 
@@ -198,6 +199,7 @@ module cw305_reg_aes #(
                `REG_USER_LED:           O_user_led <= write_data[0];
                `REG_BRIDGE_STATUS:      O_status <= write_data;
                `REG_PROG_INSTR:         O_instruction[reg_bytecnt*8 +: 8] <= write_data;
+               `REG_PROG_ADDRESS:       O_address[reg_bytecnt*8 +: 8] <= write_data;
                
             endcase
          end

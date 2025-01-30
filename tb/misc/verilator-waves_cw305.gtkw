@@ -1,21 +1,31 @@
 [*]
 [*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
-[*] Tue Jan 28 17:46:00 2025
+[*] Thu Jan 30 12:32:31 2025
 [*]
 [dumpfile] "/home/lorenzocapobianco/Progetti/Tesi_Magistrale/CW305-HEEP/build/polito_cw305_heep_cw305_heep_0.0.1/sim-verilator/logs/waves.fst"
-[dumpfile_mtime] "Tue Jan 28 17:40:10 2025"
-[dumpfile_size] 787825
+[dumpfile_mtime] "Thu Jan 30 12:26:08 2025"
+[dumpfile_size] 4298413
 [savefile] "/home/lorenzocapobianco/Progetti/Tesi_Magistrale/CW305-HEEP/tb/misc/verilator-waves_cw305.gtkw"
-[timestart] 886
+[timestart] 66293
 [size] 1920 1001
-[pos] -27 -24
-*-2.269238 900 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-2.269238 66308 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.tb_system_cw305.
 [treeopen] TOP.tb_system_cw305.U_cw305_top.
 [treeopen] TOP.tb_system_cw305.U_cw305_top.u_bridge2xheep.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.hw2reg.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.reg2hw.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.
+[treeopen] TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.peripheral_subsystem_i.
 [sst_width] 273
-[signals_width] 206
+[signals_width] 295
 [sst_expanded] 1
 [sst_vpaned_height] 296
 @800200
@@ -44,11 +54,13 @@ TOP.tb_system_cw305.U_cw305_top.U_reg_aes.reg_bytecnt[1:0]
 TOP.tb_system_cw305.U_cw305_top.U_reg_aes.reg_addrvalid
 @22
 TOP.tb_system_cw305.U_cw305_top.U_reg_aes.write_data[7:0]
-TOP.tb_system_cw305.U_cw305_top.U_reg_aes.O_status[7:0]
-TOP.tb_system_cw305.U_cw305_top.U_reg_aes.O_instruction[31:0]
 @28
 TOP.tb_system_cw305.U_cw305_top.U_reg_aes.I_reset_instr_valid
 TOP.tb_system_cw305.U_cw305_top.U_reg_aes.I_reset_new_addr_valid
+@22
+TOP.tb_system_cw305.U_cw305_top.U_reg_aes.O_status[7:0]
+TOP.tb_system_cw305.U_cw305_top.U_reg_aes.O_address[31:0]
+TOP.tb_system_cw305.U_cw305_top.U_reg_aes.O_instruction[31:0]
 @1000200
 -cw305_reg_aes
 @800200
@@ -80,5 +92,48 @@ TOP.tb_system_cw305.U_cw305_top.u_bridge2xheep.rvalid
 TOP.tb_system_cw305.U_cw305_top.u_bridge2xheep.rdata[31:0]
 @1000200
 -bridge2xheep
+@800200
+-cw305_usb_reg_fe
+@28
+TOP.tb_system_cw305.U_cw305_top.U_usb_reg_fe.reg_write
+TOP.tb_system_cw305.U_cw305_top.U_usb_reg_fe.reg_read
+@22
+TOP.tb_system_cw305.U_cw305_top.U_usb_reg_fe.reg_address[18:0]
+@28
+TOP.tb_system_cw305.U_cw305_top.U_usb_reg_fe.reg_bytecnt[1:0]
+@22
+TOP.tb_system_cw305.U_cw305_top.U_usb_reg_fe.reg_datao[7:0]
+@1000200
+-cw305_usb_reg_fe
+@800200
+-soc_ctrl_i_EXIT_LOOP
+@28
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_subsystem_i.soc_ctrl_i.reg2hw.boot_exit_loop.q
+@1000200
+-soc_ctrl_i_EXIT_LOOP
+@800200
+-HEEP_program_counter
+@23
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_core.pc_if[31:0]
+@22
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_core.pc_id[31:0]
+@1000200
+-HEEP_program_counter
+@800200
+-HEEP_RAM0
+@28
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.clk_i
+@22
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.addr_i[12:0]
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.wdata_i[31:0]
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.rdata_o[31:0]
+@28
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.req_i
+@22
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.be_i[3:0]
+@28
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.memory_subsystem_i.ram0_i.we_i
+@1000200
+-HEEP_RAM0
 [pattern_trace] 1
 [pattern_trace] 0
