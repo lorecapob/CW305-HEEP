@@ -136,6 +136,8 @@ module cw305_top #(
     always @(posedge heep_clk) heep_clk_heartbeat <= heep_clk_heartbeat +  23'd1;
     assign led2 = heep_clk_heartbeat[22];
 
+    // Tri-state buffer for USB data
+    assign usb_data = isout? usb_dout : 8'bZ;
 
     cw305_usb_reg_fe #(
        .pBYTECNT_SIZE           (pBYTECNT_SIZE),
@@ -276,8 +278,13 @@ module cw305_top #(
   // Static configuration. The board has a 4-item DIP switch, but the values j16_sel and k16_sel
   // are used to select the clock sources, so only the signals k15_sel and l14_sel are available
   // for the user.
-  wire boot_select_i = k15_sel;
-  wire execute_from_flash_i = l14_sel;
+  // wire boot_select_i = k15_sel;
+  // wire execute_from_flash_i = l14_sel;
+
+  // Alternative configuration. The boot mode is fixed at the synthesis time.
+  // 
+  wire boot_select_i = 0'b0;
+  wire execute_from_flash_i = 0'b0;
 
   
 

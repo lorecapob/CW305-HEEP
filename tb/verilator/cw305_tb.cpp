@@ -83,8 +83,15 @@ void runCycles(unsigned int ncycles, Vtb_system_cw305 *dut, uint8_t gen_waves, V
 // This function reads the main.hex firmware file and extracts instructions on 32 bit 
 int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBridge *req);
 
+// This function writes a byte to the cw305_top module
+void writeByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, vluint32_t usb_addr, vluint32_t usb_data, vluint8_t byteCNT);
+
+// This function reads a byte from the cw305_top module
+void readByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, vluint32_t usb_addr, vluint8_t byteCNT);
+
 // This function sends the instruction extracted by the previous function to the DUT, 1 byte at the time
-void sendInstrByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req);
+// if the module is ready to accept new instructions
+void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req);
 
 // This function writes "1" in the memory location corresponding to the boot_exit_loop flag
 void triggerExitLoop(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req);
@@ -115,7 +122,7 @@ int tmp_instruction = 0;
 // ----------------------------------------------------------
 
 // ------ Global variables for the bridge -------------------
-int bridgeStatus = 0;
+int cw305ReadData = 0;
 // ----------------------------------------------------------
 
 int main(int argc, char *argv[])
@@ -319,7 +326,7 @@ int main(int argc, char *argv[])
                 if (req->address >= 0x180)
                 {
                     // Send the instruction 1 byte at the time                
-                    sendInstrByte(dut, gen_waves, trace, req);
+                    sendInstr(dut, gen_waves, trace, req);
                 }
             }
 
@@ -469,75 +476,149 @@ std::string getCmdOption(int argc, char *argv[], const std::string &option)
     return cmd;
 }
 
-void sendInstrByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
+void readByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, vluint32_t usb_addr, vluint8_t byteCNT)
 {
+    dut->usb_wrn = 1;
     // According to the documentation, the address sent to cw305_top has a parallelism of 21 bit.
     // The 2 LSBs represent the BYTECNT parameter, while the remaining part is the register address.
 
+    dut->usb_addr = (usb_addr << 2) + byteCNT;
+    runCycles(1, dut, gen_waves, trace);
+    dut->usb_rdn = 0;
+    dut->usb_cen = 0;
+    runCycles(2, dut, gen_waves, trace);
+    cw305ReadData = dut->usb_data;
+    runCycles(1, dut, gen_waves, trace);
+    dut->usb_rdn = 1;
+    dut->usb_cen = 1;
+}
+
+void writeByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, vluint32_t usb_addr, vluint32_t usb_data, vluint8_t byteCNT)
+{
+    dut->usb_rdn = 1;
+    // According to the documentation, the address sent to cw305_top has a parallelism of 21 bit.
+    // The 2 LSBs represent the BYTECNT parameter, while the remaining part is the register address.
+    
+    dut->usb_addr = (usb_addr << 2) + byteCNT;
+    dut->usb_data = usb_data;
+    dut->usb_wrn = 0;
+    //runCycles(1, dut, gen_waves, trace);
+    dut->usb_cen = 0;
+    runCycles(1, dut, gen_waves, trace);
+    dut->usb_cen = 1;
+    runCycles(1, dut, gen_waves, trace);
+    dut->usb_wrn = 1;
+    runCycles(1, dut, gen_waves, trace);
+
+}
+
+void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
+{
     // Check if the cw305 is ready to accept new instructions. A read on the bridge_status register is performed.
+    // If the instruction valid bit is 1 (bit 1), the bridge is busy and we need to wait.
     do{
-        dut->usb_cen = 0;
-        dut->usb_rdn = 0;
-        dut->usb_addr = (REG_BRIDGE_STATUS << 2);
-        bridgeStatus = dut->usb_data;
-        runCycles(1, dut, gen_waves, trace);
-    } while ((bridgeStatus & 0x2)); // Wait until the bridge is ready to accept new instructions
+        readByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, 0);
+        printf("Bridge status: %d\n", cw305ReadData);
+    } while ((cw305ReadData & 0x2)); // Wait until the bridge is ready to accept new instructions
 
     // If the bridge is ready, send the instruction byte by byte
+    vluint32_t cw305_reg_addr = 0;
+    vluint32_t cw305_reg_data = 0;
+    vluint8_t data_valid_flag = 0;
+
+    if (req->addr_valid){
+        cw305_reg_addr = REG_PROG_ADDRESS;
+        cw305_reg_data = req->address;
+        data_valid_flag = 2;
+    }
+    else if (req->valid){
+        cw305_reg_addr = REG_PROG_INSTR;
+        cw305_reg_data = req->instruction;
+        data_valid_flag = 1;
+    }
     for (int i = 0; i < 4; i++){
-        dut->usb_cen = 0;
-        dut->usb_wrn = 0;
-        dut->usb_rdn = 1;
-        
-        if (req->addr_valid){
-            dut->usb_addr   = (REG_PROG_ADDRESS << 2) + i;
-            dut->usb_data = (req->address >> (i * 8)) & 0xFF; // Extract 8 bits at a time
-        }
-        else if (req->valid){
-            dut->usb_addr   = (REG_PROG_INSTR << 2) + i;
-            dut->usb_data = (req->instruction >> (i * 8)) & 0xFF; // Extract 8 bits at a time
-        }
-        
-        runCycles(1, dut, gen_waves, trace);
+        writeByte(dut, gen_waves, trace, cw305_reg_addr, ((cw305_reg_data >> (i * 8)) & 0xFF), i);
     }
 
     // Set 1 to the status register flag
-    dut->usb_cen    = 0;
-    dut->usb_wrn    = 0;
-    dut->usb_addr   = (REG_BRIDGE_STATUS << 2);
-    if (req->addr_valid){
-        // Write 1 in brige_status[2]
-        dut->usb_data = (1 << 2);
-    }
-    else if (req->valid){
-        // Write 1 in brige_status[1]
-        dut->usb_data = (1 << 1);
-    }
-    runCycles(1, dut, gen_waves, trace);
+    writeByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, (1 << data_valid_flag), 0);
 
     // Reset comunications flags and the request flags
-    dut->usb_cen    = 1;
-    dut->usb_wrn    = 1;
-    dut->usb_rdn    = 1;
-    dut->usb_data   = NULL;
-    //runCycles(1, dut, gen_waves, trace);
-    printf("Bridge status: %d\n", dut->bridge_instr_valid_status);
+    data_valid_flag = 0;
     req->valid      = 0;
     req->addr_valid = 0;
-    
+
 }
+
+// void sendInstrByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
+// {
+//     // According to the documentation, the address sent to cw305_top has a parallelism of 21 bit.
+//     // The 2 LSBs represent the BYTECNT parameter, while the remaining part is the register address.
+
+//     // Check if the cw305 is ready to accept new instructions. A read on the bridge_status register is performed.
+//     do{
+//         dut->usb_addr = (REG_BRIDGE_STATUS << 2);
+//         dut->usb_cen = 0;
+//         dut->usb_rdn = 0;
+//         bridgeStatus = dut->usb_data;
+//         runCycles(1, dut, gen_waves, trace);
+//     } while ((bridgeStatus & 0x2)); // Wait until the bridge is ready to accept new instructions
+
+//     // If the bridge is ready, send the instruction byte by byte
+//     for (int i = 0; i < 4; i++){
+//         dut->usb_cen = 0;
+//         dut->usb_wrn = 0;
+//         dut->usb_rdn = 1;
+        
+//         if (req->addr_valid){
+//             dut->usb_addr   = (REG_PROG_ADDRESS << 2) + i;
+//             dut->usb_data = (req->address >> (i * 8)) & 0xFF; // Extract 8 bits at a time
+//         }
+//         else if (req->valid){
+//             dut->usb_addr   = (REG_PROG_INSTR << 2) + i;
+//             dut->usb_data = (req->instruction >> (i * 8)) & 0xFF; // Extract 8 bits at a time
+//         }
+        
+//         runCycles(1, dut, gen_waves, trace);
+//     }
+
+//     // Set 1 to the status register flag
+//     dut->usb_cen    = 0;
+//     dut->usb_wrn    = 0;
+//     dut->usb_addr   = (REG_BRIDGE_STATUS << 2);
+//     if (req->addr_valid){
+//         // Write 1 in brige_status[2]
+//         dut->usb_data = (1 << 2);
+//     }
+//     else if (req->valid){
+//         // Write 1 in brige_status[1]
+//         dut->usb_data = (1 << 1);
+//     }
+//     runCycles(1, dut, gen_waves, trace);
+
+//     // Reset comunications flags and the request flags
+//     dut->usb_cen    = 1;
+//     dut->usb_wrn    = 1;
+//     dut->usb_rdn    = 1;
+//     //dut->usb_data   = NULL;
+//     //runCycles(1, dut, gen_waves, trace);
+//     printf("Bridge status: %d\n", dut->bridge_instr_valid_status);
+//     req->valid      = 0;
+//     req->addr_valid = 0;
+    
+// }
 
 void triggerExitLoop(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
 {
     // #TODO: basta richiamare la funzione di sopra con i corretti valori per indirizzo e dato
     req->address = SOC_CTRL_START_ADDRESS + SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET;
     req->addr_valid = 1;
-    sendInstrByte(dut, gen_waves, trace, req);
+    sendInstr(dut, gen_waves, trace, req);
     req->addr_valid = 0;
 
     req->instruction = 0x1;
     req->valid = 1;
-    sendInstrByte(dut, gen_waves, trace, req);
+    sendInstr(dut, gen_waves, trace, req);
     req->valid = 0;
 }
 

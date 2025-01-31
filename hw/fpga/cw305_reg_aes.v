@@ -177,6 +177,7 @@ module cw305_reg_aes #(
    // cycle earlier, simply remove this stage:
    always @(posedge usb_clk)
       read_data <= reg_read_data;
+   //assign read_data = reg_read_data;
 
    //////////////////////////////////
    // write logic (USB clock domain):
