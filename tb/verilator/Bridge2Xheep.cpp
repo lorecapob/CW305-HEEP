@@ -7,7 +7,7 @@ ReqBridge::ReqBridge()
 {
     this->instruction = 0;
     this->address = 0;
-    this->valid = 0;
+    this->instr_valid = 0;
     this->addr_valid = 0;
 }
 
@@ -43,7 +43,7 @@ void Drv::drive(ReqBridge *req)
     dut->wdata_i              = 0;
     *//*
 
-    if (req->valid)
+    if (req->instr_valid)
     {
         if (req->address >= 0x180)
         {   
@@ -81,7 +81,7 @@ void Drv::drive(ReqBridge *req)
                 dut->we_i = 0;
 
                 req->address += 4;
-                req->valid = 0;
+                req->instr_valid = 0;
                 
                 this->state = 0;
                 break;

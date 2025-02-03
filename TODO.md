@@ -18,7 +18,7 @@
 - [x] Fix the DPI error in the testbench
 - [x] Fix the boot select mode
 - [x] Fix the cw305 read problem
-- [ ] Replace the valid with instr_valid for the request class
+- [x] Replace the valid with instr_valid for the request class
 - [ ] Add an enum case for the bridge status for debug purpose
 - [ ] Remove debug printf
 - [ ] Fix the UART output for simulation purposes

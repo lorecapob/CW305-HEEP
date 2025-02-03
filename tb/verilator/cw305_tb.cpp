@@ -41,7 +41,7 @@
 #define EXEC_FROM_FLASH 0 // 0: do not execute from flash
 #define RUN_CYCLES 500
 // #define TB_HIER_NAME "TOP.tb_system" // Replaced with the cw305 DUT
-#define TB_HIER_NAME "TOP.tb_system_cw305"
+#define TB_HIER_NAME "TOP.tb_system_cw305.U_cw305_top"
 // -------- Bridge2Xheep --------
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
         // Firmware loading procedure replaced by the HW bridge
         while (genReqBridge(hex_file, dut, drv, req)) // This loop goes on until the end of file is reached
         {
-            if (req->valid || req->addr_valid) //#TODO: rinominare valid in instr_valid
+            if (req->instr_valid || req->addr_valid) //#TODO: rinominare valid in instr_valid
             {
                 // Check if the address is in the correct range
                 if (req->address >= 0x180)
@@ -491,6 +491,7 @@ void readByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, vl
     runCycles(1, dut, gen_waves, trace);
     dut->usb_rdn = 1;
     dut->usb_cen = 1;
+    runCycles(1, dut, gen_waves, trace);
 }
 
 void writeByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, vluint32_t usb_addr, vluint32_t usb_data, vluint8_t byteCNT)
@@ -502,12 +503,15 @@ void writeByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, v
     dut->usb_addr = (usb_addr << 2) + byteCNT;
     dut->usb_data = usb_data;
     dut->usb_wrn = 0;
-    //runCycles(1, dut, gen_waves, trace);
+    runCycles(1, dut, gen_waves, trace);
     dut->usb_cen = 0;
+    dut->usb_data = usb_data;
     runCycles(1, dut, gen_waves, trace);
     dut->usb_cen = 1;
+    dut->usb_data = usb_data;
     runCycles(1, dut, gen_waves, trace);
     dut->usb_wrn = 1;
+    dut->usb_data = usb_data;
     runCycles(1, dut, gen_waves, trace);
 
 }
@@ -531,7 +535,7 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
         cw305_reg_data = req->address;
         data_valid_flag = 2;
     }
-    else if (req->valid){
+    else if (req->instr_valid){
         cw305_reg_addr = REG_PROG_INSTR;
         cw305_reg_data = req->instruction;
         data_valid_flag = 1;
@@ -544,9 +548,9 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
     writeByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, (1 << data_valid_flag), 0);
 
     // Reset comunications flags and the request flags
-    data_valid_flag = 0;
-    req->valid      = 0;
-    req->addr_valid = 0;
+    data_valid_flag     = 0;
+    req->instr_valid    = 0;
+    req->addr_valid     = 0;
 
 }
 
@@ -574,7 +578,7 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
 //             dut->usb_addr   = (REG_PROG_ADDRESS << 2) + i;
 //             dut->usb_data = (req->address >> (i * 8)) & 0xFF; // Extract 8 bits at a time
 //         }
-//         else if (req->valid){
+//         else if (req->instr_valid){
 //             dut->usb_addr   = (REG_PROG_INSTR << 2) + i;
 //             dut->usb_data = (req->instruction >> (i * 8)) & 0xFF; // Extract 8 bits at a time
 //         }
@@ -590,7 +594,7 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
 //         // Write 1 in brige_status[2]
 //         dut->usb_data = (1 << 2);
 //     }
-//     else if (req->valid){
+//     else if (req->instr_valid){
 //         // Write 1 in brige_status[1]
 //         dut->usb_data = (1 << 1);
 //     }
@@ -603,7 +607,7 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
 //     //dut->usb_data   = NULL;
 //     //runCycles(1, dut, gen_waves, trace);
 //     printf("Bridge status: %d\n", dut->bridge_instr_valid_status);
-//     req->valid      = 0;
+//     req->instr_valid      = 0;
 //     req->addr_valid = 0;
     
 // }
@@ -617,9 +621,9 @@ void triggerExitLoop(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *tr
     req->addr_valid = 0;
 
     req->instruction = 0x1;
-    req->valid = 1;
+    req->instr_valid = 1;
     sendInstr(dut, gen_waves, trace, req);
-    req->valid = 0;
+    req->instr_valid = 0;
 }
 
 int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBridge *req)
@@ -664,7 +668,7 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
                             instrFilledByte = 0;
                             // Call set instr method
                             req->instruction = instruction;
-                            req->valid = 1;
+                            req->instr_valid = 1;
                             instruction = 0;
                         }
                         else if (tmp_hex != '@')
@@ -703,7 +707,7 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
                         // to 0 when the instruction is written in the RAM.
                         if (req->address == 0x180)
                         {
-                            req->valid = 0;
+                            req->instr_valid = 0;
                         }
 
                         address = 0;
@@ -738,7 +742,7 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
                         instrFilledByte = 0;
                         // Call set instr method
                         req->instruction = instruction;
-                        req->valid = 1;
+                        req->instr_valid = 1;
                         instruction = 0;
                     }
                 }
