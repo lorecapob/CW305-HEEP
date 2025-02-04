@@ -35,19 +35,74 @@ module tb_system_cw305 #(
 
     // Exit signals. Needed for the testbench as output port
     output wire        exit_valid_o,
-    output wire [31:0] exit_value_o,
-
-    // Bridge status register. Needed for the testbench
-    output wire        bridge_instr_valid_status
+    output wire [31:0] exit_value_o
 );
     logic usb_clk = clk_i;
     logic pushbutton = rst_ni;
 
+    // UART
+    wire cw305_heep_uart_tx;
+    wire cw305_heep_uart_rx;
+
+    // SPI flash
+    wire        spi_flash_sck;
+    wire [ 1:0] spi_flash_csb;
+    wire [ 3:0] spi_flash_sd_io;
+
+    // SPI
+    wire        spi_sck;
+    wire [ 1:0] spi_csb;
+    wire [ 3:0] spi_sd_io;
+
+    // GPIO
+    wire [31:0] gpio;
+
+    // UART DPI emulator
+    uartdpi #(
+        .BAUD('d256000),
+        .FREQ(CLK_FREQ * 1000),  // Hz
+        .NAME("uart")
+    ) u_uartdpi (
+        .clk_i (usb_clk),
+        .rst_ni(rst_ni),
+        .tx_o  (cw305_heep_uart_rx),
+        .rx_i  (cw305_heep_uart_tx)
+    );
+
+    // SPI flash emulator
+    `ifndef VERILATOR
+    spiflash u_flash_boot (
+        .csb(spi_flash_csb[0]),
+        .clk(spi_flash_sck),
+        .io0(spi_flash_sd_io[0]),
+        .io1(spi_flash_sd_io[1]),
+        .io2(spi_flash_sd_io[2]),
+        .io3(spi_flash_sd_io[3])
+    );
+
+    spiflash u_flash_device (
+        .csb(spi_csb[0]),
+        .clk(spi_sck),
+        .io0(spi_sd_io[0]),
+        .io1(spi_sd_io[1]),
+        .io2(spi_sd_io[2]),
+        .io3(spi_sd_io[3])
+    );
+    `endif  /* VERILATOR */
+
+    gpio_cnt #(
+        .CntMax(32'd16)
+    ) u_test_gpio (
+        .clk_i (usb_clk),
+        .rst_ni(rst_ni),
+        .gpio_i(gpio[30]),
+        .gpio_o(gpio[31])
+    );
+
     cw305_top #(
         .pBYTECNT_SIZE(pBYTECNT_SIZE),
         .pADDR_WIDTH(pADDR_WIDTH),
-        .pINSTR_WIDTH(pINSTR_WIDTH),
-        .CLK_FREQ(CLK_FREQ)
+        .pINSTR_WIDTH(pINSTR_WIDTH)
     ) U_cw305_top (
         // USB Interface
         .usb_clk(usb_clk),
@@ -79,9 +134,23 @@ module tb_system_cw305 #(
 
         // Exit signals
         .exit_valid_o(exit_valid_o),
-        .exit_value_o(exit_value_o)
-    );
+        .exit_value_o(exit_value_o),
 
-    assign bridge_instr_valid_status = U_cw305_top.bridge_status[1];
+        // UART DPI
+        .gr_heep_uart_tx(cw305_heep_uart_tx),
+        .gr_heep_uart_rx(cw305_heep_uart_rx),
+
+        // SPI flash emulator
+        .spi_flash_sck(spi_flash_sck),
+        .spi_flash_csb(spi_flash_csb),
+        .spi_flash_sd_io(spi_flash_sd_io),
+
+        .spi_sck(spi_sck),
+        .spi_csb(spi_csb),
+        .spi_sd_io(spi_sd_io),
+
+        // GPIO counter
+        .gpio(gpio)
+    );
 
 endmodule

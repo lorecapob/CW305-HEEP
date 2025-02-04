@@ -41,7 +41,7 @@
 #define EXEC_FROM_FLASH 0 // 0: do not execute from flash
 #define RUN_CYCLES 500
 // #define TB_HIER_NAME "TOP.tb_system" // Replaced with the cw305 DUT
-#define TB_HIER_NAME "TOP.tb_system_cw305.U_cw305_top"
+#define TB_HIER_NAME "TOP.tb_system_cw305"
 // -------- Bridge2Xheep --------
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
@@ -276,6 +276,8 @@ int main(int argc, char *argv[])
         trace->open(FST_FILENAME);
     }
 
+    // Uncomment to set the scope for DPI functions if needed
+
     // Set scope for DPI functions
     // svSetScope(svGetScopeFromName(TB_HIER_NAME));
     // svScope scope = svGetScope();
@@ -329,12 +331,6 @@ int main(int argc, char *argv[])
                     sendInstr(dut, gen_waves, trace, req);
                 }
             }
-
-            // Debug
-            printf("##############################################\n");
-            printf("New Section Address: %x\n", req->address);
-            printf("Instruction: %x\n", req->instruction);
-
         }
 
         runCycles(1, dut, gen_waves, trace);
@@ -522,7 +518,6 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
     // If the instruction valid bit is 1 (bit 1), the bridge is busy and we need to wait.
     do{
         readByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, 0);
-        printf("Bridge status: %d\n", cw305ReadData);
     } while ((cw305ReadData & 0x2)); // Wait until the bridge is ready to accept new instructions
 
     // If the bridge is ready, send the instruction byte by byte
@@ -554,67 +549,8 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
 
 }
 
-// void sendInstrByte(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
-// {
-//     // According to the documentation, the address sent to cw305_top has a parallelism of 21 bit.
-//     // The 2 LSBs represent the BYTECNT parameter, while the remaining part is the register address.
-
-//     // Check if the cw305 is ready to accept new instructions. A read on the bridge_status register is performed.
-//     do{
-//         dut->usb_addr = (REG_BRIDGE_STATUS << 2);
-//         dut->usb_cen = 0;
-//         dut->usb_rdn = 0;
-//         bridgeStatus = dut->usb_data;
-//         runCycles(1, dut, gen_waves, trace);
-//     } while ((bridgeStatus & 0x2)); // Wait until the bridge is ready to accept new instructions
-
-//     // If the bridge is ready, send the instruction byte by byte
-//     for (int i = 0; i < 4; i++){
-//         dut->usb_cen = 0;
-//         dut->usb_wrn = 0;
-//         dut->usb_rdn = 1;
-        
-//         if (req->addr_valid){
-//             dut->usb_addr   = (REG_PROG_ADDRESS << 2) + i;
-//             dut->usb_data = (req->address >> (i * 8)) & 0xFF; // Extract 8 bits at a time
-//         }
-//         else if (req->instr_valid){
-//             dut->usb_addr   = (REG_PROG_INSTR << 2) + i;
-//             dut->usb_data = (req->instruction >> (i * 8)) & 0xFF; // Extract 8 bits at a time
-//         }
-        
-//         runCycles(1, dut, gen_waves, trace);
-//     }
-
-//     // Set 1 to the status register flag
-//     dut->usb_cen    = 0;
-//     dut->usb_wrn    = 0;
-//     dut->usb_addr   = (REG_BRIDGE_STATUS << 2);
-//     if (req->addr_valid){
-//         // Write 1 in brige_status[2]
-//         dut->usb_data = (1 << 2);
-//     }
-//     else if (req->instr_valid){
-//         // Write 1 in brige_status[1]
-//         dut->usb_data = (1 << 1);
-//     }
-//     runCycles(1, dut, gen_waves, trace);
-
-//     // Reset comunications flags and the request flags
-//     dut->usb_cen    = 1;
-//     dut->usb_wrn    = 1;
-//     dut->usb_rdn    = 1;
-//     //dut->usb_data   = NULL;
-//     //runCycles(1, dut, gen_waves, trace);
-//     printf("Bridge status: %d\n", dut->bridge_instr_valid_status);
-//     req->instr_valid      = 0;
-//     req->addr_valid = 0;
-    
-// }
-
 void triggerExitLoop(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, ReqBridge *req)
 {
-    // #TODO: basta richiamare la funzione di sopra con i corretti valori per indirizzo e dato
     req->address = SOC_CTRL_START_ADDRESS + SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET;
     req->addr_valid = 1;
     sendInstr(dut, gen_waves, trace, req);
@@ -630,124 +566,118 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
 {
     if (hex_file)
     {
-        //if (!dut->clk_i)
-        //{
-            //if (!(dut->bridge_instr_valid_status))
-            //{
-                isValidChar = 1;
+        isValidChar = 1;
 
-                hex_file.get(tmp_hex);
+        hex_file.get(tmp_hex);
 
-                // transform the char hex value to an integer
-                if (tmp_hex >= '0' && tmp_hex <= '9')
+        // transform the char hex value to an integer
+        if (tmp_hex >= '0' && tmp_hex <= '9')
+        {
+            ascii_offset = NUMBER_0_9;
+        }
+        else if (tmp_hex >= 'A' && tmp_hex <= 'F')
+        {
+            ascii_offset = NUMBER_A_F;
+        }
+        else if (tmp_hex == '@')
+        {
+            isNewAddress = 1;
+        }
+        else
+        {
+            isValidChar = 0;
+        }
+
+        if (isNewAddress)
+        {
+            if (addrEmptyByte >= 0)
+            {
+                // It may happen that the line does not contain always 8 hex values per instruction.
+                // In this case, we need to fill the empty bytes with 0 before setting the new address.
+                // However, those zeros will become MSB, so there is no need to add them manually.
+                if (instrFilledByte > 0 && instrFilledByte < 4)
                 {
-                    ascii_offset = NUMBER_0_9;
+                    instrFilledByte = 0;
+                    // Call set instr method
+                    req->instruction = instruction;
+                    req->instr_valid = 1;
+                    instruction = 0;
                 }
-                else if (tmp_hex >= 'A' && tmp_hex <= 'F')
+                else if (tmp_hex != '@')
                 {
-                    ascii_offset = NUMBER_A_F;
+                    // Since 0 is decimal 48 in ASCII, we need to subtract 48 to get the correct value.
+                    // Since A is decimal 65 in ASCII, we need to subtract 65 and add 10 to get the correct value for A-F.
+                    // We shift the value to the left by 4*i to get the correct address, since the address is 32 bit
+                    // and we are reading 8 hex values starting from the MSB.
+                    address += ((tmp_hex - ascii_offset) << 4 * addrEmptyByte);
+                    addrEmptyByte--;
                 }
-                else if (tmp_hex == '@')
+            }
+            else
+            {
+                isNewAddress = 0;
+                addrEmptyByte = 7;
+                // call setAddress Method
+                req->address = address;
+
+                if (address >= 0x180)
                 {
-                    isNewAddress = 1;
-                }
-                else
-                {
-                    isValidChar = 0;
+                    req->addr_valid = 1;
                 }
 
-                if (isNewAddress)
+                // Workaround to avoid misalignement of instructions at 0x180.
+                // In fact, instruction with address lower than 0x180 are not valid and should be discarded.
+                // However, the main.hex file contains instruction with address lower than 0x180.
+                // These instructions are read anyway and the valid flag is set to 1 each time a new
+                // instruction is valid. Due to this behavior, as soon the address 0x180 is read, since the
+                // previous instrucion set valid to 1, a wrong instrucion is sent to the bridge and then written
+                // in the RAM, causing malfunctioning of the system. Setting the valid flag to 0 when the address
+                // is exactly 0x180 avoids this issue. This does not affect the correct behavior of the system
+                // since the instructions are read always after the address and as soon the correct instruction for the
+                // address 0x180 is read, a new valid is set to 1.
+                // For all others jumps, there is not this issue, since the drive method in the bridge manages to set valid
+                // to 0 when the instruction is written in the RAM.
+                if (req->address == 0x180)
                 {
-                    if (addrEmptyByte >= 0)
+                    req->instr_valid = 0;
+                }
+
+                address = 0;
+            }
+        }
+        else
+        {
+            if (isValidChar)
+            {
+                // Here is more complex. Since the instructions are in the form 97 F1 00 00 but they need to be
+                // written in the form 00 00 F1 97, we need first to read 2 hex values and shift the first one
+                // to the left by 4 bits. Then the sum of the 2 hex values is shifted to the left a number of bytes
+                // proportional to the number of hex values read so far.
+                // When an instrucion is complete, we call the setInstr method.
+                tmp_instruction += (tmp_hex - ascii_offset) << 4 * k;
+                k--;
+
+                if (k == -1)
+                {
+                    if (instrFilledByte < 4)
                     {
-                        // It may happen that the line does not contain always 8 hex values per instruction.
-                        // In this case, we need to fill the empty bytes with 0 before setting the new address.
-                        // However, those zeros will become MSB, so there is no need to add them manually.
-                        if (instrFilledByte > 0 && instrFilledByte < 4)
-                        {
-                            instrFilledByte = 0;
-                            // Call set instr method
-                            req->instruction = instruction;
-                            req->instr_valid = 1;
-                            instruction = 0;
-                        }
-                        else if (tmp_hex != '@')
-                        {
-                            // Since 0 is decimal 48 in ASCII, we need to subtract 48 to get the correct value.
-                            // Since A is decimal 65 in ASCII, we need to subtract 65 and add 10 to get the correct value for A-F.
-                            // We shift the value to the left by 4*i to get the correct address, since the address is 32 bit
-                            // and we are reading 8 hex values starting from the MSB.
-                            address += ((tmp_hex - ascii_offset) << 4 * addrEmptyByte);
-                            addrEmptyByte--;
-                        }
+                        instruction += (tmp_instruction << (8 * instrFilledByte));
+                        instrFilledByte++;
                     }
-                    else
-                    {
-                        isNewAddress = 0;
-                        addrEmptyByte = 7;
-                        // call setAddress Method
-                        req->address = address;
 
-                        if (address >= 0x180)
-                        {
-                            req->addr_valid = 1;
-                        }
-
-                        // Workaround to avoid misalignement of instructions at 0x180.
-                        // In fact, instruction with address lower than 0x180 are not valid and should be discarded.
-                        // However, the main.hex file contains instruction with address lower than 0x180.
-                        // These instructions are read anyway and the valid flag is set to 1 each time a new
-                        // instruction is valid. Due to this behavior, as soon the address 0x180 is read, since the
-                        // previous instrucion set valid to 1, a wrong instrucion is sent to the bridge and then written
-                        // in the RAM, causing malfunctioning of the system. Setting the valid flag to 0 when the address
-                        // is exactly 0x180 avoids this issue. This does not affect the correct behavior of the system
-                        // since the instructions are read always after the address and as soon the correct instruction for the
-                        // address 0x180 is read, a new valid is set to 1.
-                        // For all others jumps, there is not this issue, since the drive method in the bridge manages to set valid
-                        // to 0 when the instruction is written in the RAM.
-                        if (req->address == 0x180)
-                        {
-                            req->instr_valid = 0;
-                        }
-
-                        address = 0;
-                    }
+                    k = 1;
+                    tmp_instruction = 0;
                 }
-                else
-                {
-                    if (isValidChar)
-                    {
-                        // Here is more complex. Since the instructions are in the form 97 F1 00 00 but they need to be
-                        // written in the form 00 00 F1 97, we need first to read 2 hex values and shift the first one
-                        // to the left by 4 bits. Then the sum of the 2 hex values is shifted to the left a number of bytes
-                        // proportional to the number of hex values read so far.
-                        // When an instrucion is complete, we call the setInstr method.
-                        tmp_instruction += (tmp_hex - ascii_offset) << 4 * k;
-                        k--;
-
-                        if (k == -1)
-                        {
-                            if (instrFilledByte < 4)
-                            {
-                                instruction += (tmp_instruction << (8 * instrFilledByte));
-                                instrFilledByte++;
-                            }
-
-                            k = 1;
-                            tmp_instruction = 0;
-                        }
-                    }
-                    else if (instrFilledByte == 4)
-                    {
-                        instrFilledByte = 0;
-                        // Call set instr method
-                        req->instruction = instruction;
-                        req->instr_valid = 1;
-                        instruction = 0;
-                    }
-                }
-            //}
-        //}
+            }
+            else if (instrFilledByte == 4)
+            {
+                instrFilledByte = 0;
+                // Call set instr method
+                req->instruction = instruction;
+                req->instr_valid = 1;
+                instruction = 0;
+            }
+        }
         return 1;
     }
     else

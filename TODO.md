@@ -10,7 +10,7 @@
 - [x] The bridge have to reset the instruction valid flag? Yes
 - [x] Add just the core-v-mini-mcu module or everything else there is inside tb_system? All
 - [x] Add another register for the new address? Yes
-- [ ] Remove commented parts in the cw305 files
+- [x] Remove commented parts in the cw305 files
 - [x] Add exit value output in cw305_top.v (maybe useless)
 - [x] Create SV wrap for the CW305
 - [x] Create C++ testbench for the CW305
@@ -20,5 +20,7 @@
 - [x] Fix the cw305 read problem
 - [x] Replace the valid with instr_valid for the request class
 - [ ] Add an enum case for the bridge status for debug purpose
-- [ ] Remove debug printf
-- [ ] Fix the UART output for simulation purposes
+- [x] Remove debug printf
+- [x] Fix the UART output for simulation purposes
+- [ ] Create core file for synthesis
+- [ ] Add constraints file for Vivado

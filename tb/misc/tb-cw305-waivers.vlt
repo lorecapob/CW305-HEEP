@@ -14,8 +14,9 @@ lint_off -rule UNUSED -file "*hw/fpga/cw305_usb_reg_fe.v" -match "Signal is not*
 lint_off -rule UNUSED -file "*hw/fpga/cw305_reg_aes.v" -match "Signal is not*used: '*'"
 lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not used: 'bridge_status'*"
 lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not used: 'gpio'*"
+lint_off -rule UNUSED -file "*tb/tb_system_cw305.sv" -match "Bits of signal are not used: 'gpio'*"
+lint_off -rule UNUSED -file "*tb/tb_system_cw305.sv" -match "Signal is not*used: '*'"
 // UNUSED
-// lint_off -rule UNUSED -file "*tb/tb_system_cw305.sv" -match "Bits of signal are not used: 'gpio'*"
 // lint_off -rule UNUSED -file "*tb/tb_system_cw305.sv" -match "Bits of signal are not used: 'spi_flash_csb'*"
 // lint_off -rule SYNCASYNCNET -file "*tb/tb_system_cw305.sv" -match "*"
 // lint_off -rule UNUSED -file "*tb/tb_util.svh" -match "Bits of signal are not used: 'addr'*"

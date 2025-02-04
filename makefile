@@ -73,7 +73,7 @@ FUSESOC_ARGS		+= --VERILATOR_VERSION=$(VERILATOR_VERSION_1)
 FLASHWRITE_FILE		?= $(FIRMWARE)
 
 # QuestaSim
-FUSESOC_BUILD_DIR			= $(shell find $(BUILD_DIR) -type d -name 'polito_gr_heep_gr_heep_*' 2>/dev/null | sort | head -n 1)
+FUSESOC_BUILD_DIR			= $(shell find $(BUILD_DIR) -type d -name 'polito_cw305_heep_cw305_heep_*' 2>/dev/null | sort | head -n 1)
 QUESTA_SIM_DIR				= $(FUSESOC_BUILD_DIR)/sim-modelsim
 
 # Application spacific makefile

@@ -32,13 +32,9 @@ either expressed or implied, of NewAE Technology Inc.
 module cw305_top #(
     parameter pBYTECNT_SIZE = 2, // this parameter defines the number of bits used to address the bytes in the register. 2 bits => 2^2 => 4 bytes, so each register can store 4 bytes
     parameter pADDR_WIDTH = 21,  // the first (pADDR_WIDTH - pBYTECNT_SIZE) MSB bits are used to address the register, the remaining LSB bits are used to address the bytes in the register
-   //  parameter pPT_WIDTH = 128,
-   //  parameter pCT_WIDTH = 128,
-   //  parameter pKEY_WIDTH = 128
 
    // Added for the bridge
-   parameter pINSTR_WIDTH = 32,
-   parameter int unsigned CLK_FREQ = 32'd100_000  // kHz
+   parameter pINSTR_WIDTH = 32
 )(
     // USB Interface
     input wire                          usb_clk,        // Clock
@@ -68,35 +64,29 @@ module cw305_top #(
     // output wire                         tio_trigger,
     // output wire                         tio_clkout,
     input  wire                         tio_clkin,
-
-    // Block Interface to Crypto Core
-// `ifdef USE_BLOCK_INTERFACE
-//    ,output wire                         crypto_clk,
-//     output wire                         crypto_rst,
-//     output wire [pPT_WIDTH-1:0]         crypto_textout,
-//     output wire [pKEY_WIDTH-1:0]        crypto_keyout,
-//     input  wire [pCT_WIDTH-1:0]         crypto_cipherin,
-//     output wire                         crypto_start,
-//     input wire                          crypto_ready,
-//     input wire                          crypto_done,
-//     input wire                          crypto_busy,
-//     input wire                          crypto_idle
-// `endif
+    // #TODO: Connect the UART also to 2 pins of the 20-pin connector
 
     // Exit signals. Needed for the testbench as output port
     output wire        exit_valid_o,
-    output wire [31:0] exit_value_o
+    output wire [31:0] exit_value_o,
+
+    // UART
+    inout wire         gr_heep_uart_rx,
+    output wire        gr_heep_uart_tx,
+
+    // SPI Flash
+    output wire        spi_flash_sck,
+    output wire [1:0]  spi_flash_csb,
+    inout  wire [3:0]  spi_flash_sd_io,
+
+    // SPI
+    output wire        spi_sck,
+    output wire [1:0]  spi_csb,
+    inout  wire [3:0]  spi_sd_io,
+
+    // GPIO
+    inout  wire [31:0] gpio
   );
-
-
-   //  wire [pKEY_WIDTH-1:0] crypt_key;
-   //  wire [pPT_WIDTH-1:0] crypt_textout;
-   //  wire [pCT_WIDTH-1:0] crypt_cipherin;
-   //  wire crypt_init;
-   //  wire crypt_ready;
-   //  wire crypt_start;
-   //  wire crypt_done;
-   //  wire crypt_busy;
 
     // Added for the bridge
     wire [pINSTR_WIDTH-1:0] bridge_instruction;
@@ -166,9 +156,6 @@ module cw305_top #(
     cw305_reg_aes #(
        .pBYTECNT_SIZE           (pBYTECNT_SIZE),
        .pADDR_WIDTH             (pADDR_WIDTH)
-      //  .pPT_WIDTH               (pPT_WIDTH),
-      //  .pCT_WIDTH               (pCT_WIDTH),
-      //  .pKEY_WIDTH              (pKEY_WIDTH)
     ) U_reg_aes (
        .reset_i                 (reset),
        .crypto_clk              (heep_clk),
@@ -183,21 +170,13 @@ module cw305_top #(
 
        .exttrigger_in           (usb_trigger),
 
-      //  .I_textout               (128'b0),               // unused
-      //  .I_cipherout             (crypt_cipherin),
-      //  .I_ready                 (crypt_ready),
-      //  .I_done                  (crypt_done),
-      //  .I_busy                  (crypt_busy),
       .I_heep_data              (bridge_data),
       .I_reset_new_addr_valid   (bridge_rst_new_address_valid),
       .I_reset_instr_valid      (bridge_rst_instr_valid),
 
        .O_clksettings           (clk_settings),
        .O_user_led              (led3),
-      //  .O_key                   (crypt_key),
-      //  .O_textin                (crypt_textout),
-      //  .O_cipherin              (),                     // unused
-      //  .O_start                 (crypt_start),
+
        // Added for the bridge
        .O_instruction           (bridge_instruction),
        .O_address               (bridge_new_address),
@@ -218,63 +197,6 @@ module cw305_top #(
        .O_cryptoclk             (heep_clk)
     );
 
-
-
-  // Block interface is used by the IP Catalog. If you are using block-based
-  // design define USE_BLOCK_INTERFACE.
-// `ifdef USE_BLOCK_INTERFACE
-//     assign crypto_clk = heep_clk;
-//     assign crypto_rst = crypt_init;
-//     assign crypto_keyout = crypt_key;
-//     assign crypto_textout = crypt_textout;
-//     assign crypt_cipherin = crypto_cipherin;
-//     assign crypto_start = crypt_start;
-//     assign crypt_ready = crypto_ready;
-//     assign crypt_done = crypto_done;
-//     assign crypt_busy = crypto_busy;
-//     assign tio_trigger = ~crypto_idle;
-// `endif
-
-  // START CRYPTO MODULE CONNECTIONS
-  // The following can have your crypto module inserted.
-  // This is an example of the Google Vault AES module.
-  // You can use the ILA to view waveforms if needed, which
-  // requires an external USB-JTAG adapter (such as Xilinx Platform
-  // Cable USB).
-
-
-// #TODO: change this with grheep+bridge modules
-// `ifdef GOOGLE_VAULT_AES
-//    wire aes_clk;
-//    wire [127:0] aes_key;
-//    wire [127:0] aes_pt;
-//    wire [127:0] aes_ct;
-//    wire aes_load;
-//    wire aes_busy;
-
-//    assign aes_clk = heep_clk;
-//    assign aes_key = crypt_key;
-//    assign aes_pt = crypt_textout;
-//    assign crypt_cipherin = aes_ct;
-//    assign aes_load = crypt_start;
-//    assign crypt_ready = 1'b1;
-//    assign crypt_done = ~aes_busy;
-//    assign crypt_busy = aes_busy;
-
-//    // Example AES Core -- #TODO : 
-//    aes_core aes_core (
-//        .clk             (aes_clk),
-//        .load_i          (aes_load),
-//        .key_i           ({aes_key, 128'h0}),
-//        .data_i          (aes_pt),
-//        .size_i          (2'd0), //AES128
-//        .dec_i           (1'b0),//enc mode
-//        .data_o          (aes_ct),
-//        .busy_o          (aes_busy)
-//    );
-//    assign tio_trigger = aes_busy;
-// `endif
-
   // Static configuration. The board has a 4-item DIP switch, but the values j16_sel and k16_sel
   // are used to select the clock sources, so only the signals k15_sel and l14_sel are available
   // for the user.
@@ -286,7 +208,6 @@ module cw305_top #(
   wire boot_select_i = 0'b0;
   wire execute_from_flash_i = 0'b0;
 
-  
 
   // INTERNAL SIGNALS
   // ----------------
@@ -296,26 +217,6 @@ module cw305_top #(
   wire jtag_trst_n  = '0;
   wire jtag_tdi     = '0;
   wire jtag_tdo     = '0;
-
-  // UART
-  wire gr_heep_uart_tx;
-  wire gr_heep_uart_rx;
-
-  // GPIO
-  wire [31:0] gpio;
-
-  // SPI flash
-  wire        spi_flash_sck;
-  wire [ 1:0] spi_flash_csb;
-  wire [ 3:0] spi_flash_sd_io;
-
-  // SPI
-  wire        spi_sck;
-  wire [ 1:0] spi_csb;
-  wire [ 3:0] spi_sd_io;
-
-  // GPIO
-  wire clk_div;
 
   // Bridge signals
   wire        req_i;
@@ -327,56 +228,9 @@ module cw305_top #(
   wire        gnt_o;
   wire        rvalid_o;
   wire [31:0] rdata_o;
-
-  // wire        inst_valid_i;
-  // wire [31:0] instruction_i;
-  // wire        new_addr_valid_i;
-  // wire [31:0] new_section_address_i;
-  // wire        busy_o;
   wire        OBI_rvalid_o;
   wire [31:0] OBI_rdata_o;
 
-  // UART DPI emulator
-  uartdpi #(
-    .BAUD('d256000),
-    .FREQ(CLK_FREQ * 1000),  // Hz
-    .NAME("uart")
-  ) u_uartdpi (
-    .clk_i (heep_clk),
-    .rst_ni(resetn),
-    .tx_o  (gr_heep_uart_rx),
-    .rx_i  (gr_heep_uart_tx)
-  );
-
-  // SPI flash emulator
-`ifndef VERILATOR
-  spiflash u_flash_boot (
-    .csb(spi_flash_csb[0]),
-    .clk(spi_flash_sck),
-    .io0(spi_flash_sd_io[0]),
-    .io1(spi_flash_sd_io[1]),
-    .io2(spi_flash_sd_io[2]),
-    .io3(spi_flash_sd_io[3])
-  );
-
-  spiflash u_flash_device (
-    .csb(spi_csb[0]),
-    .clk(spi_sck),
-    .io0(spi_sd_io[0]),
-    .io1(spi_sd_io[1]),
-    .io2(spi_sd_io[2]),
-    .io3(spi_sd_io[3])
-  );
-`endif  /* VERILATOR */
-
-  gpio_cnt #(
-    .CntMax(32'd16)
-  ) u_test_gpio (
-    .clk_i (heep_clk),
-    .rst_ni(resetn),
-    .gpio_i(gpio[30]),
-    .gpio_o(gpio[31])
-  );
 
   // DUT
   // ---
@@ -456,8 +310,6 @@ module cw305_top #(
 
   );
 
-  // Some modifications are needed. All the OBI signals have to move from the PORT section to internal signals
-  // and the bridge MCU side signals have to be added
 
   // Bridge instantiation
   bridge2xheep u_bridge2xheep (
