@@ -65,10 +65,14 @@ module cw305_top #(
     // output wire                         tio_clkout,
     input  wire                         tio_clkin,
     // #TODO: Connect the UART also to 2 pins of the 20-pin connector
+    inout wire         debug_heep_uart_rx,
+    output wire        debug_heep_uart_tx,
 
     // Exit signals. Needed for the testbench as output port
     output wire        exit_valid_o,
     output wire [31:0] exit_value_o,
+
+    // DEBUG SIGNALS
 
     // UART
     inout wire         gr_heep_uart_rx,
@@ -119,12 +123,12 @@ module cw305_top #(
     // USB CLK Heartbeat
     reg [24:0] usb_timer_heartbeat;
     always @(posedge usb_clk_buf) usb_timer_heartbeat <= usb_timer_heartbeat +  25'd1;
-    assign led1 = usb_timer_heartbeat[24];
+    assign led1 = usb_timer_heartbeat[10];
 
     // HEEP CLK Heartbeat
     reg [22:0] heep_clk_heartbeat;
     always @(posedge heep_clk) heep_clk_heartbeat <= heep_clk_heartbeat +  23'd1;
-    assign led2 = heep_clk_heartbeat[22];
+    assign led2 = heep_clk_heartbeat[10];
 
     // Tri-state buffer for USB data
     assign usb_data = isout? usb_dout : 8'bZ;
@@ -175,7 +179,7 @@ module cw305_top #(
       .I_reset_instr_valid      (bridge_rst_instr_valid),
 
        .O_clksettings           (clk_settings),
-       .O_user_led              (led3),
+       .O_user_led              (/*led3*/), // Unconnected since the LED is driven by the HEEP core
 
        // Added for the bridge
        .O_instruction           (bridge_instruction),
@@ -310,6 +314,12 @@ module cw305_top #(
 
   );
 
+  // Debug LED
+  assign led3 = gpio[2];
+
+  // Debug UART
+  assign debug_heep_uart_rx = gr_heep_uart_rx;
+  assign debug_heep_uart_tx = gr_heep_uart_tx;
 
   // Bridge instantiation
   bridge2xheep u_bridge2xheep (

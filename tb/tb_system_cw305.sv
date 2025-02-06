@@ -44,6 +44,9 @@ module tb_system_cw305 #(
     wire cw305_heep_uart_tx;
     wire cw305_heep_uart_rx;
 
+    wire debug_heep_uart_rx;
+    wire debug_heep_uart_tx;
+
     // SPI flash
     wire        spi_flash_sck;
     wire [ 1:0] spi_flash_csb;
@@ -131,6 +134,8 @@ module tb_system_cw305 #(
         // .tio_trigger(), // Unused
         // .tio_clkout(),  // Unused
         .tio_clkin(usb_clk), // Connected to USB clock just for simulation purpose
+        .debug_heep_uart_rx(debug_heep_uart_rx),
+        .debug_heep_uart_tx(debug_heep_uart_tx),
 
         // Exit signals
         .exit_valid_o(exit_valid_o),

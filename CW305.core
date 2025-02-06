@@ -48,6 +48,12 @@ filesets:
     - x-heep::packages
     - x-heep:ip:pad_control
 
+  # XDC pin assign for the CW305 board
+  xdc-fpga-cw305:
+    files:
+    - hw/fpga/constraints/cw305/cw305.xdc
+    file_type: xdc
+
   # RTL testbench system
   tb-system-cw305:
     files:
@@ -139,6 +145,28 @@ targets:
         - '-Wpedantic'
         - '-LDFLAGS "-pthread -lutil -lelf"'
         # - '-CFLAGS "-Wall -g"'
+
+  cw305:
+    << : *default
+    default_tool: vivado
+    description: Synthesis for the CW305 Board
+    filesets_append:
+    # TODO: check if other filesets are needed
+    - xdc-fpga-cw305
+    parameters:
+    - COREV_PULP
+    - FPU
+    - X_EXT
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
+    tools:
+      vivado:
+        #TODO: Add the correct board part
+        #part: xc7z020clg400-1
+        #board_part: tul.com.tw:pynq-z2:part0:1.0
+        #board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_pynq_z2_board_files]
+    toplevel: [cw305_top]
 
 # Parameters
 # Inherited from the GR-HEEP core?

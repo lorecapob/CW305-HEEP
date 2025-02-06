@@ -50,6 +50,7 @@
 #define SOC_CTRL_START_ADDRESS 0x20000000
 #define SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET 0xc
 // CW305 registers addresses
+#define REG_CLKSETTINGS 0x0
 #define REG_BRIDGE_STATUS 0x2
 #define REG_PROG_INSTR 0x3
 #define REG_PROG_ADDRESS 0x4
@@ -318,6 +319,8 @@ int main(int argc, char *argv[])
         TB_LOG(LOG_MEDIUM, "- writing firmware to SRAM...");
         //dut->tb_loadHEX(firmware_file.c_str());
 
+        // Set CW305 clock settings
+        writeByte(dut, gen_waves, trace, REG_CLKSETTINGS, 0x1, 0);
 
         // Firmware loading procedure replaced by the HW bridge
         while (genReqBridge(hex_file, dut, drv, req)) // This loop goes on until the end of file is reached
@@ -516,6 +519,9 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
 {
     // Check if the cw305 is ready to accept new instructions. A read on the bridge_status register is performed.
     // If the instruction valid bit is 1 (bit 1), the bridge is busy and we need to wait.
+    // Status reg is 8 bit wide, but only the bits 1 and 2 are used.
+    // status[1] = 1 -> instruction valid
+    // status[2] = 1 -> address valid
     do{
         readByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, 0);
     } while ((cw305ReadData & 0x2)); // Wait until the bridge is ready to accept new instructions
