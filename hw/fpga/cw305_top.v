@@ -174,7 +174,7 @@ module cw305_top #(
 
        .exttrigger_in           (usb_trigger),
 
-      .I_heep_data              (bridge_data),
+      //.I_heep_data              (bridge_data),
       .I_reset_new_addr_valid   (bridge_rst_new_address_valid),
       .I_reset_instr_valid      (bridge_rst_instr_valid),
 
@@ -209,18 +209,18 @@ module cw305_top #(
 
   // Alternative configuration. The boot mode is fixed at the synthesis time.
   // 
-  wire boot_select_i = 0'b0;
-  wire execute_from_flash_i = 0'b0;
+  wire boot_select_i = 1'b0;
+  wire execute_from_flash_i = 1'b0;
 
 
   // INTERNAL SIGNALS
   // ----------------
   // JTAG
-  wire jtag_tck     = '0;
-  wire jtag_tms     = '0;
-  wire jtag_trst_n  = '0;
-  wire jtag_tdi     = '0;
-  wire jtag_tdo     = '0;
+  wire jtag_tck     = 1'b0;
+  wire jtag_tms     = 1'b0;
+  wire jtag_trst_n  = 1'b0;
+  wire jtag_tdi     = 1'b0;
+  wire jtag_tdo     = 1'b0;
 
   // Bridge signals
   wire        req_i;

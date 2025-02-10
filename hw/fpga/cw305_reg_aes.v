@@ -56,7 +56,7 @@ module cw305_reg_aes #(
    input  wire                                  exttrigger_in,
 
 // register inputs:
-   input reg [pINSTR_WIDTH-1:0]                 I_heep_data,
+   //input reg [pINSTR_WIDTH-1:0]                 I_heep_data,
    
    // Added for the bridge
    input wire                                   I_reset_new_addr_valid,
@@ -89,7 +89,7 @@ module cw305_reg_aes #(
             `REG_CLKSETTINGS:           reg_read_data = {{3{1'b0}}, O_clksettings}; // Zero-extend to 8 bits
             `REG_USER_LED:              reg_read_data = {{7{1'b0}}, O_user_led}; // Zero-extend to 8 bits
             `REG_BRIDGE_STATUS:         reg_read_data = O_status;
-            `REG_HEEP_DATA:             reg_read_data = I_heep_data[reg_bytecnt*8 +: 8];
+            //`REG_HEEP_DATA:             reg_read_data = I_heep_data[reg_bytecnt*8 +: 8];
             `REG_BUILDTIME:             reg_read_data = buildtime[reg_bytecnt*8 +: 8];
             default:                    reg_read_data = 0;
          endcase

@@ -220,7 +220,10 @@ verilator-opt: | check-firmware .verilator-check-params
 # Open dumped waveform with GTKWave
 .PHONY: verilator-waves
 verilator-waves: $(BUILD_DIR)/sim-common/waves.fst | .check-gtkwave
-	gtkwave -a tb/misc/verilator-waves.gtkw $<
+	gtkwave -a tb/misc/verilator-waves_cw305.gtkw $<
+
+vivado-fpga:
+	$(FUSESOC) --cores-root . run --no-export --target=cw305 $(FUSESOC_FLAGS) --build polito:cw305_heep:cw305_heep ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
 ## @section Software
 
@@ -295,7 +298,6 @@ check-firmware:
 .PHONY: clean clean-lock
 clean:
 	$(RM) $(GR_HEEP_GEN_LOCK)
-	$(RM) hw/ip/gr_heep_top.sv
 	$(RM) hw/ip/pad-ring/pad-ring.sv
 	$(RM) sw/device/include/gr_heep.h
 	$(RM) -r $(BUILD_DIR)

@@ -455,6 +455,27 @@ targets:
         board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_pynq_z2_board_files]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
+  # cw305:
+  #   <<: *default_target
+  #   default_tool: vivado
+  #   description: CW305 board
+  #   filesets_append:
+  #   - x_heep_system
+  #   - rtl-fpga
+  #   parameters:
+  #   - COREV_PULP
+  #   - FPU
+  #   - X_EXT
+  #   - SYNTHESIS=true
+  #   - REMOVE_OBI_FIFO
+  #   - FPGA_SYNTHESIS=true
+  #   tools:
+  #     vivado:
+  #       part: xc7a100tftg256-2
+  #       # board_part: 
+  #       # board_repo_paths: []
+  #   toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
   zcu104:
     <<: *default_target
     default_tool: vivado

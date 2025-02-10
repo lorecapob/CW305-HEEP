@@ -17,18 +17,22 @@ filesets:
   # The fileset containing the top-level HDL files
   rtl:
     files:
-    # Bridge files
-    - hw/vendor/cw305_bridge/instr_reg
-    - hw/vendor/cw305_bridge/counter_plus4
-    - hw/vendor/cw305_bridge/bridge2xheep_cu
-    - hw/vendor/cw305_bridge/bridge2xheep
     # Top-level file
-    - hw/fpga/clocks
-    - hw/fpga/cw305_usb_reg_fe
-    - hw/fpga/cw305_aes_defines: {is_include_file: true}
-    - hw/fpga/cw305_reg_aes
-    - hw/fpga/cw305_top
+    - hw/fpga/clocks.v
+    - hw/fpga/cw305_usb_reg_fe.v
+    - hw/fpga/cw305_aes_defines.v: {is_include_file: true}
+    - hw/fpga/cw305_reg_aes.v
+    - hw/fpga/cw305_top.v
     file_type: verilogSource
+
+  rtl-bridge:
+    files:
+    # Bridge files
+    - hw/vendor/cw305_bridge/instr_reg.sv
+    - hw/vendor/cw305_bridge/counter_plus4.sv
+    - hw/vendor/cw305_bridge/bridge2xheep_cu.sv
+    - hw/vendor/cw305_bridge/bridge2xheep.sv
+    file_type: systemVerilogSource
 
   # GR-HEEP RTL
   rtl-gr-heep:
@@ -48,11 +52,18 @@ filesets:
     - x-heep::packages
     - x-heep:ip:pad_control
 
-  # XDC pin assign for the CW305 board
   xdc-fpga-cw305:
+    depend:
+    - openhwgroup.org:systems:core-v-mini-mcu-fpga
+    - openhwgroup.org:systems:core-v-mini-mcu
+    - pulp-platform.org:ip:gpio
     files:
     - hw/fpga/constraints/cw305/cw305.xdc
     file_type: xdc
+
+  ip-fpga-cw305:
+    files:
+    - hw/fpga/constraints/cw305/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
   # RTL testbench system
   tb-system-cw305:
@@ -96,9 +107,10 @@ scripts:
 targets:
   default: &default
     filesets:
-    - rtl
-    - rtl-gr-heep
     - rtl-x-heep
+    - rtl-gr-heep
+    - rtl-bridge
+    - rtl
     toplevel: cw305_top
 
   # Verilator C++ testbench for RTL simulation
@@ -153,17 +165,14 @@ targets:
     filesets_append:
     # TODO: check if other filesets are needed
     - xdc-fpga-cw305
+    # - ip-fpga-cw305
     parameters:
-    - COREV_PULP
-    - FPU
-    - X_EXT
-    - SYNTHESIS=true
-    - REMOVE_OBI_FIFO
-    - FPGA_SYNTHESIS=true
+    # - FPGA_SYNTHESIS=true
     tools:
       vivado:
         #TODO: Add the correct board part
-        #part: xc7z020clg400-1
+        part: xc7a100tftg256-2
+        # board_part: 
         #board_part: tul.com.tw:pynq-z2:part0:1.0
         #board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_pynq_z2_board_files]
     toplevel: [cw305_top]
