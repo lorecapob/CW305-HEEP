@@ -64,33 +64,71 @@ module cw305_top #(
     // output wire                         tio_trigger,
     // output wire                         tio_clkout,
     input  wire                         tio_clkin,
-    // #TODO: Connect the UART also to 2 pins of the 20-pin connector
-    inout wire         debug_heep_uart_rx,
-    output wire        debug_heep_uart_tx,
-
-    // Exit signals. Needed for the testbench as output port
-    output wire        exit_valid_o,
-    output wire [31:0] exit_value_o,
 
     // DEBUG SIGNALS
+   `ifdef VERILATOR
 
-    // UART
-    inout wire         gr_heep_uart_rx,
-    output wire        gr_heep_uart_tx,
+      // Exit signals. Needed for the testbench as output port
+      output wire        exit_valid_o,
+      output wire [31:0] exit_value_o,
 
-    // SPI Flash
-    output wire        spi_flash_sck,
-    output wire [1:0]  spi_flash_csb,
-    inout  wire [3:0]  spi_flash_sd_io,
+      // UART
+      inout wire         gr_heep_uart_rx,
+      output wire        gr_heep_uart_tx,
 
-    // SPI
-    output wire        spi_sck,
-    output wire [1:0]  spi_csb,
-    inout  wire [3:0]  spi_sd_io,
+      // SPI Flash
+      output wire        spi_flash_sck,
+      output wire [1:0]  spi_flash_csb,
+      inout  wire [3:0]  spi_flash_sd_io,
 
-    // GPIO
-    inout  wire [31:0] gpio
+      // SPI
+      output wire        spi_sck,
+      output wire [1:0]  spi_csb,
+      inout  wire [3:0]  spi_sd_io,
+
+      // GPIO
+      inout  wire [31:0] gpio,
+   `endif
+
+    // Debug UART connected to the 20-PIN connector
+    inout wire         debug_heep_uart_rx,
+    output wire        debug_heep_uart_tx
   );
+
+
+   wire        internal_exit_valid_o;
+   wire [31:0] internal_exit_value_o;
+
+   // UART
+   wire        internal_gr_heep_uart_rx;
+   wire        internal_gr_heep_uart_tx;
+
+   // SPI Flash
+   wire        internal_spi_flash_sck;
+   wire [1:0]  internal_spi_flash_csb;
+   wire [3:0]  internal_spi_flash_sd_io;
+
+   // SPI
+   wire        internal_spi_sck;
+   wire [1:0]  internal_spi_csb;
+   wire [3:0]  internal_spi_sd_io;
+
+   // GPIO
+   wire [31:0] internal_gpio;
+
+   `ifdef VERILATOR
+      assign exit_valid_o = internal_exit_valid_o;
+      assign exit_value_o = internal_exit_value_o;
+      assign gr_heep_uart_rx = internal_gr_heep_uart_rx;
+      assign gr_heep_uart_tx = internal_gr_heep_uart_tx;
+      assign spi_flash_sck = internal_spi_flash_sck;
+      assign spi_flash_csb = internal_spi_flash_csb;
+      assign spi_flash_sd_io = internal_spi_flash_sd_io;
+      assign spi_sck = internal_spi_sck;
+      assign spi_csb = internal_spi_csb;
+      assign spi_sd_io = internal_spi_sd_io;
+      assign gpio = internal_gpio;
+   `endif
 
     // Added for the bridge
     wire [pINSTR_WIDTH-1:0] bridge_instruction;
@@ -247,59 +285,59 @@ module cw305_top #(
     .jtag_trst_ni        (jtag_trst_n),
     .jtag_tdi_i          (jtag_tdi),
     .jtag_tdo_o          (jtag_tdo),
-    .uart_rx_i           (gr_heep_uart_rx),
-    .uart_tx_o           (gr_heep_uart_tx),
-    .exit_valid_o        (exit_valid_o),
-    .gpio_0_io           (gpio[0]),
-    .gpio_1_io           (gpio[1]),
-    .gpio_2_io           (gpio[2]),
-    .gpio_3_io           (gpio[3]),
-    .gpio_4_io           (gpio[4]),
-    .gpio_5_io           (gpio[5]),
-    .gpio_6_io           (gpio[6]),
-    .gpio_7_io           (gpio[7]),
-    .gpio_8_io           (gpio[8]),
-    .gpio_9_io           (gpio[9]),
-    .gpio_10_io          (gpio[10]),
-    .gpio_11_io          (gpio[11]),
-    .gpio_12_io          (gpio[12]),
-    .gpio_13_io          (gpio[13]),
-    .gpio_14_io          (gpio[14]),
-    .gpio_15_io          (gpio[15]),
-    .gpio_16_io          (gpio[16]),
-    .gpio_17_io          (gpio[17]),
-    .gpio_18_io          (gpio[18]),
-    .gpio_19_io          (gpio[19]),
-    .gpio_20_io          (gpio[20]),
-    .gpio_21_io          (gpio[21]),
-    .gpio_22_io          (gpio[22]),
-    .gpio_23_io          (gpio[23]),
-    .gpio_24_io          (gpio[24]),
-    .gpio_25_io          (gpio[25]),
-    .gpio_26_io          (gpio[26]),
-    .gpio_27_io          (gpio[27]),
-    .gpio_28_io          (gpio[28]),
-    .gpio_29_io          (gpio[29]),
-    .gpio_30_io          (gpio[30]),
-    .spi_flash_sck_io    (spi_flash_sck),
-    .spi_flash_cs_0_io   (spi_flash_csb[0]),
-    .spi_flash_cs_1_io   (spi_flash_csb[1]),
-    .spi_flash_sd_0_io   (spi_flash_sd_io[0]),
-    .spi_flash_sd_1_io   (spi_flash_sd_io[1]),
-    .spi_flash_sd_2_io   (spi_flash_sd_io[2]),
-    .spi_flash_sd_3_io   (spi_flash_sd_io[3]),
-    .spi_sck_io          (spi_sck),
-    .spi_cs_0_io         (spi_csb[0]),
-    .spi_cs_1_io         (spi_csb[1]),
-    .spi_sd_0_io         (spi_sd_io[0]),
-    .spi_sd_1_io         (spi_sd_io[1]),
-    .spi_sd_2_io         (spi_sd_io[2]),
-    .spi_sd_3_io         (spi_sd_io[3]),
+    .uart_rx_i           (internal_gr_heep_uart_rx),
+    .uart_tx_o           (internal_gr_heep_uart_tx),
+    .exit_valid_o        (internal_exit_valid_o),
+    .gpio_0_io           (internal_gpio[0]),
+    .gpio_1_io           (internal_gpio[1]),
+    .gpio_2_io           (internal_gpio[2]),
+    .gpio_3_io           (internal_gpio[3]),
+    .gpio_4_io           (internal_gpio[4]),
+    .gpio_5_io           (internal_gpio[5]),
+    .gpio_6_io           (internal_gpio[6]),
+    .gpio_7_io           (internal_gpio[7]),
+    .gpio_8_io           (internal_gpio[8]),
+    .gpio_9_io           (internal_gpio[9]),
+    .gpio_10_io          (internal_gpio[10]),
+    .gpio_11_io          (internal_gpio[11]),
+    .gpio_12_io          (internal_gpio[12]),
+    .gpio_13_io          (internal_gpio[13]),
+    .gpio_14_io          (internal_gpio[14]),
+    .gpio_15_io          (internal_gpio[15]),
+    .gpio_16_io          (internal_gpio[16]),
+    .gpio_17_io          (internal_gpio[17]),
+    .gpio_18_io          (internal_gpio[18]),
+    .gpio_19_io          (internal_gpio[19]),
+    .gpio_20_io          (internal_gpio[20]),
+    .gpio_21_io          (internal_gpio[21]),
+    .gpio_22_io          (internal_gpio[22]),
+    .gpio_23_io          (internal_gpio[23]),
+    .gpio_24_io          (internal_gpio[24]),
+    .gpio_25_io          (internal_gpio[25]),
+    .gpio_26_io          (internal_gpio[26]),
+    .gpio_27_io          (internal_gpio[27]),
+    .gpio_28_io          (internal_gpio[28]),
+    .gpio_29_io          (internal_gpio[29]),
+    .gpio_30_io          (internal_gpio[30]),
+    .spi_flash_sck_io    (internal_spi_flash_sck),
+    .spi_flash_cs_0_io   (internal_spi_flash_csb[0]),
+    .spi_flash_cs_1_io   (internal_spi_flash_csb[1]),
+    .spi_flash_sd_0_io   (internal_spi_flash_sd_io[0]),
+    .spi_flash_sd_1_io   (internal_spi_flash_sd_io[1]),
+    .spi_flash_sd_2_io   (internal_spi_flash_sd_io[2]),
+    .spi_flash_sd_3_io   (internal_spi_flash_sd_io[3]),
+    .spi_sck_io          (internal_spi_sck),
+    .spi_cs_0_io         (internal_spi_csb[0]),
+    .spi_cs_1_io         (internal_spi_csb[1]),
+    .spi_sd_0_io         (internal_spi_sd_io[0]),
+    .spi_sd_1_io         (internal_spi_sd_io[1]),
+    .spi_sd_2_io         (internal_spi_sd_io[2]),
+    .spi_sd_3_io         (internal_spi_sd_io[3]),
     .i2s_sck_io          (),
     .i2s_ws_io           (),
     .i2s_sd_io           (),
     .clk_i           (heep_clk),
-    .exit_value_o        (exit_value_o[0]),
+    .exit_value_o        (internal_exit_value_o[0]),
 
     // Bridge signals
     .req_i                (req_i),
@@ -315,11 +353,11 @@ module cw305_top #(
   );
 
   // Debug LED
-  assign led3 = gpio[2];
+  assign led3 = internal_gpio[2];
 
   // Debug UART
-  assign debug_heep_uart_rx = gr_heep_uart_rx;
-  assign debug_heep_uart_tx = gr_heep_uart_tx;
+  assign debug_heep_uart_rx = internal_gr_heep_uart_rx;
+  assign debug_heep_uart_tx = internal_gr_heep_uart_tx;
 
   // Bridge instantiation
   bridge2xheep u_bridge2xheep (
@@ -349,7 +387,7 @@ module cw305_top #(
   );
 
   // Exit value
-  assign exit_value_o[31:1] = u_gr_heep_top.u_core_v_mini_mcu.exit_value_o[31:1];
+  assign internal_exit_value_o[31:1] = u_gr_heep_top.u_core_v_mini_mcu.exit_value_o[31:1];
 
 endmodule
 
