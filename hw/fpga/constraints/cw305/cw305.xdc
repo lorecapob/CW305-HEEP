@@ -31,6 +31,11 @@ set_property PACKAGE_PIN N13 [get_ports pll_clk1]
 set_property PACKAGE_PIN N14 [get_ports tio_clkin]
 
 # Debug UART
+set untimed_od 0.5
+set untimed_id 0.5
+set_input_delay  -clock [get_clocks usb_clk] -add_delay $untimed_id [get_ports debug_heep_uart_rx]
+set_output_delay -clock [get_clocks usb_clk] -add_delay $untimed_id [get_ports debug_heep_uart_tx]
+
 set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { debug_heep_uart_tx}]; # IO1
 set_property -dict { PACKAGE_PIN R16   IOSTANDARD LVCMOS33 } [get_ports { debug_heep_uart_rx}]; # IO2
 

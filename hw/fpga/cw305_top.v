@@ -292,14 +292,14 @@ module cw305_top #(
     .uart_tx_o           (internal_gr_heep_uart_tx),
     .exit_valid_o        (internal_exit_valid_o),
 
-    `ifdef VERILATOR
+    //`ifdef VERILATOR
     .gpio_0_io           (internal_gpio[0]),
     .gpio_1_io           (internal_gpio[1]),
-    `endif
+    //`endif
 
     .gpio_2_io           (internal_gpio[2]),
 
-    `ifdef VERILATOR
+    //`ifdef VERILATOR
     .gpio_3_io           (internal_gpio[3]),
     .gpio_4_io           (internal_gpio[4]),
     .gpio_5_io           (internal_gpio[5]),
@@ -345,7 +345,7 @@ module cw305_top #(
     .i2s_sck_io          (),
     .i2s_ws_io           (),
     .i2s_sd_io           (),
-   `endif
+   //`endif
 
     .clk_i           (heep_clk),
     .exit_value_o        (internal_exit_value_o[0]),

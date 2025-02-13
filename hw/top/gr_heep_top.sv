@@ -646,11 +646,11 @@ module gr_heep_top (
     .i2c_sda_oe_o(i2c_sda_oe_x),
 
 
-`ifdef FPGA
-    .spi_flash_cs_1_o   (),
-    .spi_flash_cs_1_i   ('0),
-    .spi_flash_cs_1_oe_o(),
-`endif
+// `ifdef FPGA
+//     .spi_flash_cs_1_o   (),
+//     .spi_flash_cs_1_i   ('0),
+//     .spi_flash_cs_1_oe_o(),
+// `endif
 
     // CORE-V eXtension Interface
     .xif_compressed_if(ext_xif.cpu_compressed),

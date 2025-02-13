@@ -22,5 +22,6 @@
 - [ ] Add an enum case for the bridge status for debug purpose
 - [x] Remove debug printf
 - [x] Fix the UART output for simulation purposes
-- [ ] Create core file for synthesis
-- [ ] Add constraints file for Vivado
+- [x] Create core file for synthesis
+- [x] Add constraints file for Vivado
+- [ ] Change the DUT in cw305 from gr_heep_top to x-heep-system

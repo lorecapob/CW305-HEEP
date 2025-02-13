@@ -167,7 +167,9 @@ targets:
     - xdc-fpga-cw305
     # - ip-fpga-cw305
     parameters:
-    # - FPGA_SYNTHESIS=true
+    - SYNTHESIS=true
+    - FPGA_SYNTHESIS=true
+    - FPGA=true
     tools:
       vivado:
         #TODO: Add the correct board part
@@ -236,3 +238,15 @@ parameters:
     datatype: int
     paramtype: vlogdefine
     default: 4
+  FPGA:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  FPGA_SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
