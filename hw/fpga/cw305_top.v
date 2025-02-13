@@ -142,13 +142,16 @@ module cw305_top #(
     // --------------------------------
 
     wire isout;
-    wire [pADDR_WIDTH-pBYTECNT_SIZE-1:0] reg_address;
+    reg [pADDR_WIDTH-pBYTECNT_SIZE-1:0] reg_address;
+    wire [pADDR_WIDTH-pBYTECNT_SIZE-1:0] reg_address_fe;
     wire [pBYTECNT_SIZE-1:0] reg_bytecnt;
     wire reg_addrvalid;
-    wire [7:0] write_data;
+    reg [7:0] write_data;
+    wire [7:0] write_data_fe;
     wire [7:0] read_data;
     wire reg_read;
-    wire reg_write;
+    reg reg_write;
+    wire reg_write_fe;
     wire [4:0] clk_settings;
     wire heep_clk;
     wire usb_clk_buf;
@@ -185,12 +188,12 @@ module cw305_top #(
        .usb_alen                (1'b0),                 // unused
        .usb_addr                (usb_addr),
        .usb_isout               (isout), 
-       .reg_address             (reg_address), 
+       .reg_address             (reg_address_fe), 
        .reg_bytecnt             (reg_bytecnt), 
-       .reg_datao               (write_data), 
+       .reg_datao               (write_data_fe), 
        .reg_datai               (read_data),
        .reg_read                (reg_read), 
-       .reg_write               (reg_write), 
+       .reg_write               (reg_write_fe), 
        .reg_addrvalid           (reg_addrvalid)
     );
 
@@ -393,6 +396,29 @@ module cw305_top #(
     .OBI_rvalid(bridge_data_valid),
     .OBI_rdata(bridge_data)
   );
+
+  // The bridge drives a MUX that selects which data has to be written to the reg_aes module.
+  // This is necessary to reset the status flags using the same interface used also by the 
+  // usb_reg_fe module.
+  always @(*) begin
+    if (~bridge_rst_new_address_valid) begin
+      reg_address = `REG_BRIDGE_STATUS;
+      write_data  = bridge_status & ~(8'b00000100);
+      reg_write   = 1'b1;
+    end
+
+    else if (~bridge_rst_instr_valid) begin
+      reg_address = `REG_BRIDGE_STATUS;
+      write_data  = bridge_status & ~(8'b00000010);
+      reg_write   = 1'b1;
+    end
+
+    else begin
+      reg_address = reg_address_fe;
+      write_data  = write_data_fe;
+      reg_write   = reg_write_fe;
+    end
+  end
 
   // Exit value
   assign internal_exit_value_o[31:1] = u_gr_heep_top.u_core_v_mini_mcu.exit_value_o[31:1];

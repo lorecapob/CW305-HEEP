@@ -136,15 +136,15 @@ module cw305_reg_aes #(
    // There is no risk of race condition, since, as soon the instruction valid flag is set to 1, the USB
    // communication is blocked until that flag is set to 0.
    // During this interval, the bridge can read the instruction and reset the flag.
-   always @(posedge usb_clk) begin
-      if (~I_reset_new_addr_valid)
-         O_status[2] <= 0;
-   end
+   // always @(posedge usb_clk) begin
+   //    if (~I_reset_new_addr_valid)
+   //       O_status[2] <= 0;
+   // end
    
-   always @(posedge usb_clk) begin
-      if (~I_reset_instr_valid)
-         O_status[1] <= 0;
-   end
+   // always @(posedge usb_clk) begin
+   //    if (~I_reset_instr_valid)
+   //       O_status[1] <= 0;
+   // end
 
 
 endmodule
