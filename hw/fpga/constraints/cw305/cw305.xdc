@@ -25,8 +25,10 @@ set_property PACKAGE_PIN N13 [get_ports pll_clk1]
 ######## 20-Pin Connector
 
 #set_property PACKAGE_PIN T14 [get_ports tio_trigger] # UNUSED
+set_property PACKAGE_PIN T14 [get_ports IO_0]
 
 #set_property PACKAGE_PIN M16 [get_ports tio_clkout] # UNUSED
+set_property PACKAGE_PIN M16 [get_ports IO_1]
 
 set_property PACKAGE_PIN N14 [get_ports tio_clkin]
 
@@ -104,19 +106,20 @@ set_input_delay -clock usb_clk -add_delay 2.000 [get_ports usb_wrn]
 set_input_delay -clock usb_clk -add_delay 0.000 [get_ports j16_sel]
 set_input_delay -clock usb_clk -add_delay 0.000 [get_ports k16_sel]
 set_input_delay -clock [get_clocks usb_clk] -add_delay 0.500 [get_ports pushbutton]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pushbutton_IBUF]
 
 set_output_delay -clock usb_clk 0.000 [get_ports led1]
 set_output_delay -clock usb_clk 0.000 [get_ports led2]
 set_output_delay -clock usb_clk 0.000 [get_ports led3]
 set_output_delay -clock usb_clk 0.000 [get_ports usb_data]
-#set_output_delay -clock usb_clk 0.000 [get_ports tio_trigger]
-#set_output_delay -clock usb_clk 0.000 [get_ports tio_clkout]
+set_output_delay -clock usb_clk 0.000 [get_ports IO_0]
+set_output_delay -clock usb_clk 0.000 [get_ports IO_1]
 set_false_path -to [get_ports led1]
 set_false_path -to [get_ports led2]
 set_false_path -to [get_ports led3]
 set_false_path -to [get_ports usb_data]
-#set_false_path -to [get_ports tio_trigger]
-#set_false_path -to [get_ports tio_clkout]
+set_false_path -to [get_ports IO_0]
+set_false_path -to [get_ports IO_1]
 
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]

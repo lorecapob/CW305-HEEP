@@ -24,4 +24,5 @@
 - [x] Fix the UART output for simulation purposes
 - [x] Create core file for synthesis
 - [x] Add constraints file for Vivado
-- [ ] Change the DUT in cw305 from gr_heep_top to x-heep-system
+- [ ] Change gr-heep pad ring pins
+- [ ] Change the gr_heep templates in a way that the external bus is instanciated and the connenction to the bridge is generated automatically

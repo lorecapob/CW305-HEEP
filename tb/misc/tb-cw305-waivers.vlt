@@ -15,6 +15,12 @@ lint_off -rule UNUSED -file "*hw/fpga/cw305_reg_aes.v" -match "Signal is not*use
 lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not used: 'bridge_status'*"
 lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not used: 'gpio'*"
 lint_off -rule UNDRIVEN -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not driven: 'internal_gpio'*"
+lint_off -rule UNDRIVEN -file "*hw/fpga/cw305_top.v" -match "Signal is not driven: '*'"
+lint_off -rule UNDRIVEN -file "*hw/top/gr_heep_top.sv" -match "Signal is not driven: '*'"
+lint_off -rule UNUSED -file "*hw/top/gr_heep_top.sv" -match "Signal is not used: 'spi_flash_cs_1_out_x_muxed'"
+lint_off -rule UNUSED -file "*hw/top/gr_heep_top.sv" -match "Signal is not used: 'spi_flash_cs_1_oe_x_muxed'"
+lint_off -rule UNDRIVEN -file "*hw/vendor/x-heep/hw/core-v-mini-mcu/core_v_mini_mcu.sv" -match "Bits of signal are not driven: 'gpio_in'*"
+lint_off -rule UNDRIVEN -file "*hw/vendor/x-heep/hw/core-v-mini-mcu/core_v_mini_mcu.sv" -match "Bits of signal are not driven: 'gpio_ao_in'*"
 lint_off -rule UNUSED -file "*tb/tb_system_cw305.sv" -match "Bits of signal are not used: 'gpio'*"
 lint_off -rule UNUSED -file "*tb/tb_system_cw305.sv" -match "Signal is not*used: '*'"
 // UNUSED
