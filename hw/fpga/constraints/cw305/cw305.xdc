@@ -33,10 +33,6 @@ set_property PACKAGE_PIN M16 [get_ports IO_1]
 set_property PACKAGE_PIN N14 [get_ports tio_clkin]
 
 # Debug UART
-set untimed_od 0.5
-set untimed_id 0.5
-set_input_delay  -clock [get_clocks usb_clk] -add_delay $untimed_id [get_ports debug_heep_uart_rx]
-set_output_delay -clock [get_clocks usb_clk] -add_delay $untimed_id [get_ports debug_heep_uart_tx]
 
 set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { debug_heep_uart_tx}]; # IO1
 set_property -dict { PACKAGE_PIN R16   IOSTANDARD LVCMOS33 } [get_ports { debug_heep_uart_rx}]; # IO2
@@ -84,9 +80,9 @@ set_property PACKAGE_PIN A3 [get_ports usb_cen]
 set_property PACKAGE_PIN A5 [get_ports usb_trigger]
 
 
-create_clock -period 10.000 -name usb_clk -waveform {0.000 5.000} [get_nets usb_clk]
-create_clock -period 10.000 -name tio_clkin -waveform {0.000 5.000} [get_nets tio_clkin]
-create_clock -period 10.000 -name pll_clk1 -waveform {0.000 5.000} [get_nets pll_clk1]
+create_clock -period 50.000 -name usb_clk -waveform {0.000 5.000} [get_nets usb_clk]
+create_clock -period 50.000 -name tio_clkin -waveform {0.000 5.000} [get_nets tio_clkin]
+create_clock -period 50.000 -name pll_clk1 -waveform {0.000 5.000} [get_nets pll_clk1]
 
 set_clock_groups -asynchronous \
                  -group [get_clocks usb_clk ] \
@@ -120,6 +116,11 @@ set_false_path -to [get_ports led3]
 set_false_path -to [get_ports usb_data]
 set_false_path -to [get_ports IO_0]
 set_false_path -to [get_ports IO_1]
+
+set untimed_od 0.5
+set untimed_id 0.5
+set_input_delay  -clock [get_clocks usb_clk] -add_delay $untimed_id [get_ports debug_heep_uart_rx]
+set_output_delay -clock [get_clocks usb_clk] -add_delay $untimed_id [get_ports debug_heep_uart_tx]
 
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]

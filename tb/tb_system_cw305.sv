@@ -134,6 +134,8 @@ module tb_system_cw305 #(
         // .tio_trigger(), // Unused
         // .tio_clkout(),  // Unused
         .tio_clkin(usb_clk), // Connected to USB clock just for simulation purpose
+        .IO_0(),
+        .IO_1(),
         .debug_heep_uart_rx(debug_heep_uart_rx),
         .debug_heep_uart_tx(debug_heep_uart_tx),
 

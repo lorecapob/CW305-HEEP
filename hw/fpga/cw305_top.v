@@ -166,12 +166,12 @@ module cw305_top #(
     // USB CLK Heartbeat
     reg [24:0] usb_timer_heartbeat;
     always @(posedge usb_clk_buf) usb_timer_heartbeat <= usb_timer_heartbeat +  25'd1;
-    assign led1 = usb_timer_heartbeat[10];
+    assign led1 = usb_timer_heartbeat[24];
 
     // HEEP CLK Heartbeat
     reg [22:0] heep_clk_heartbeat;
     always @(posedge heep_clk) heep_clk_heartbeat <= heep_clk_heartbeat +  23'd1;
-    assign led2 = heep_clk_heartbeat[10];
+    assign led2 = heep_clk_heartbeat[22];
 
     // Tri-state buffer for USB data
     assign usb_data = isout? usb_dout : 8'bZ;
@@ -299,7 +299,7 @@ module cw305_top #(
     .gpio_1_io           (internal_gpio[1]),
     //`endif
 
-    .gpio_2_io           (internal_gpio[2]),
+    .gpio_2_o           (internal_gpio[2]),
 
     //`ifdef VERILATOR
     // .gpio_3_io           (internal_gpio[3]),

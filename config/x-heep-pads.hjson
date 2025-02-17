@@ -72,9 +72,14 @@
             type: output
         },
         gpio: {
-            num: 3,
+            num: 2,
             num_offset: 0, #first gpio is gpio0
             type: inout
+        },
+        gpio_2: {
+            num: 1,
+            num_offset: 2,
+            type: output
         },
         spi_flash_sck: {
             num: 1,
