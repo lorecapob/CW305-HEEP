@@ -89,6 +89,9 @@ module cw305_reg_aes #(
             `REG_CLKSETTINGS:           reg_read_data = {{3{1'b0}}, O_clksettings}; // Zero-extend to 8 bits
             `REG_USER_LED:              reg_read_data = {{7{1'b0}}, O_user_led}; // Zero-extend to 8 bits
             `REG_BRIDGE_STATUS:         reg_read_data = O_status;
+            // Actually we don't need to read the instruction and address registers, but we do it for debugging purposes
+            `REG_PROG_INSTR:            reg_read_data = O_instruction[reg_bytecnt*8 +: 8];
+            `REG_PROG_ADDRESS:          reg_read_data = O_address[reg_bytecnt*8 +: 8];
             //`REG_HEEP_DATA:             reg_read_data = I_heep_data[reg_bytecnt*8 +: 8];
             `REG_BUILDTIME:             reg_read_data = buildtime[reg_bytecnt*8 +: 8];
             default:                    reg_read_data = 0;
@@ -114,6 +117,7 @@ module cw305_reg_aes #(
 
          O_status <= 0;
          O_instruction <= 0;
+         O_address <= 0;
       end
 
       else begin
