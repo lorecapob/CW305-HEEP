@@ -466,11 +466,11 @@ module gr_heep_top (
     .i2c_sda_oe_o(i2c_sda_oe_x),
 
 
-// `ifdef FPGA
-//     .spi_flash_cs_1_o   (),
-//     .spi_flash_cs_1_i   ('0),
-//     .spi_flash_cs_1_oe_o(),
-// `endif
+    // `ifdef FPGA
+    //     .spi_flash_cs_1_o    (),
+    //     .spi_flash_cs_1_i    ('0),
+    //     .spi_flash_cs_1_oe_o (),
+    // `endif
 
     // CORE-V eXtension Interface
     .xif_compressed_if(ext_xif.cpu_compressed),
@@ -551,17 +551,17 @@ module gr_heep_top (
 
   // External peripherals bus
   // ------------------------
-  
-  // Added for the bridge
-  assign heep_slave_req[0].req    = req_i;
-  assign heep_slave_req[0].we     = we_i;
-  assign heep_slave_req[0].be     = be_i;
-  assign heep_slave_req[0].addr   = addr_i;
-  assign heep_slave_req[0].wdata  = wdata_i;
 
-  assign gnt_o    = heep_slave_rsp[0].gnt;
-  assign rvalid_o = heep_slave_rsp[0].rvalid;
-  assign rdata_o  = heep_slave_rsp[0].rdata;
+  // Added for the bridge
+  assign heep_slave_req[0].req                       = req_i;
+  assign heep_slave_req[0].we                        = we_i;
+  assign heep_slave_req[0].be                        = be_i;
+  assign heep_slave_req[0].addr                      = addr_i;
+  assign heep_slave_req[0].wdata                     = wdata_i;
+
+  assign gnt_o                                       = heep_slave_rsp[0].gnt;
+  assign rvalid_o                                    = heep_slave_rsp[0].rvalid;
+  assign rdata_o                                     = heep_slave_rsp[0].rdata;
 
 
   // External interrupts

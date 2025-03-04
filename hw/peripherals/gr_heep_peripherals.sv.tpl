@@ -25,7 +25,7 @@ module gr_heep_peripherals (
 % if (xbar_nmasters > 0):
     // External peripherals master ports
     output obi_pkg::obi_req_t  [gr_heep_pkg::ExtXbarNMasterRnd-1:0] gr_heep_master_req_o,
-    input obi_pkg::obi_resp_t [gr_heep_pkg::ExtXbarNMasterRnd-1:0] gr_heep_master_resp_i${'' if (xbar_nslave + periph_nslaves + ext_interrupts == 0) else ','}
+    input obi_pkg::obi_resp_t [gr_heep_pkg::ExtXbarNMasterRnd-1:0] gr_heep_master_resp_i${'' if (xbar_nslaves + periph_nslaves + ext_interrupts == 0) else ','}
 % endif
 
 % if (xbar_nslaves > 0):

@@ -39,7 +39,7 @@ package gr_heep_pkg;
   // ----------------
 
   // Number of masters and slaves
-  localparam int unsigned ExtXbarNMaster = 32'd1; // Modified to 1 for the bridge
+  localparam int unsigned ExtXbarNMaster = 32'd1;
   localparam int unsigned ExtXbarNSlave = 32'd0;
   localparam int unsigned ExtXbarNMasterRnd = ExtXbarNMaster > 0 ? ExtXbarNMaster : 32'd1;
   localparam int unsigned ExtXbarNSlaveRnd = ExtXbarNSlave > 0 ? ExtXbarNSlave : 32'd1;
