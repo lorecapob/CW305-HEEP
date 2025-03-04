@@ -48,9 +48,6 @@ module gr_heep_top (
 
 
 
-
-
-
   inout wire clk_i,
   inout wire exit_value_o,
 
@@ -230,12 +227,6 @@ module gr_heep_top (
 
   logic pdm2pcm_clk_in_x, pdm2pcm_clk_out_x, pdm2pcm_clk_oe_x;
 
-  logic i2s_sck_in_x, i2s_sck_out_x, i2s_sck_oe_x;
-
-  logic i2s_ws_in_x, i2s_ws_out_x, i2s_ws_oe_x;
-
-  logic i2s_sd_in_x, i2s_sd_out_x, i2s_sd_oe_x;
-
   logic spi2_cs_0_in_x, spi2_cs_0_out_x, spi2_cs_0_oe_x;
 
   logic spi2_cs_1_in_x, spi2_cs_1_out_x, spi2_cs_1_oe_x;
@@ -277,9 +268,6 @@ module gr_heep_top (
   assign spi_sd_3_in_x       = 1'b0;
   assign pdm2pcm_pdm_in_x    = 1'b0;
   assign pdm2pcm_clk_in_x    = 1'b0;
-  assign i2s_sck_in_x        = 1'b0;
-  assign i2s_ws_in_x         = 1'b0;
-  assign i2s_sd_in_x         = 1'b0;
   assign spi2_cs_0_in_x      = 1'b0;
   assign spi2_cs_1_in_x      = 1'b0;
   assign spi2_sck_in_x       = 1'b0;
@@ -416,18 +404,6 @@ module gr_heep_top (
     .pdm2pcm_clk_i   (pdm2pcm_clk_in_x),
     .pdm2pcm_clk_o   (pdm2pcm_clk_out_x),
     .pdm2pcm_clk_oe_o(pdm2pcm_clk_oe_x),
-
-    .i2s_sck_i   (i2s_sck_in_x),
-    .i2s_sck_o   (i2s_sck_out_x),
-    .i2s_sck_oe_o(i2s_sck_oe_x),
-
-    .i2s_ws_i   (i2s_ws_in_x),
-    .i2s_ws_o   (i2s_ws_out_x),
-    .i2s_ws_oe_o(i2s_ws_oe_x),
-
-    .i2s_sd_i   (i2s_sd_in_x),
-    .i2s_sd_o   (i2s_sd_out_x),
-    .i2s_sd_oe_o(i2s_sd_oe_x),
 
     .spi2_cs_0_i   (spi2_cs_0_in_x),
     .spi2_cs_0_o   (spi2_cs_0_out_x),
@@ -605,9 +581,6 @@ module gr_heep_top (
     .gpio_1_oe_i          (gpio_1_oe_x),
     .gpio_2_io            (gpio_2_o),
     .gpio_2_i             (gpio_2_out_x),
-
-
-
 
 
 

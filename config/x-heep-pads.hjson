@@ -127,18 +127,18 @@
             type: bypass_inout
         },
 
-        i2s_sck: {
-            num: 1,
-            type: bypass_inout
-        },
-        i2s_ws: {
-            num: 1,
-            type: bypass_inout
-        },
-        i2s_sd: {
-            num: 1,
-            type: bypass_inout
-        },
+        // i2s_sck: {
+        //     num: 1,
+        //     type: bypass_inout
+        // },
+        // i2s_ws: {
+        //     num: 1,
+        //     type: bypass_inout
+        // },
+        // i2s_sd: {
+        //     num: 1,
+        //     type: bypass_inout
+        // },
         spi2_cs_0: {
             num: 1,
             type: bypass_inout
