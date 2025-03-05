@@ -27,7 +27,7 @@ module bridge2xheep_cu #()(
 
 );
 
-enum logic [5:0] {RESET, IDLE, SET_COUNTER, LD_INSTR, REQ_SENT, GNT_RECEIVED} currentState, nextState;
+enum logic [7:0] {RESET, IDLE, SET_COUNTER, WAIT_1, LD_INSTR, REQ_SENT, GNT_RECEIVED, WAIT_2} currentState, nextState;
 
 always_comb begin: next_State_logic
     
@@ -46,7 +46,14 @@ always_comb begin: next_State_logic
         end
 
         SET_COUNTER: begin
-            nextState = IDLE;
+            nextState = WAIT_1;
+        end
+
+        WAIT_1: begin
+            if(~addr_valid)
+                nextState = IDLE;
+            else
+                nextState = WAIT_1;
         end
 
         LD_INSTR: begin
@@ -61,7 +68,14 @@ always_comb begin: next_State_logic
         end
 
         GNT_RECEIVED: begin
-            nextState = IDLE;
+            nextState = WAIT_2;
+        end
+
+        WAIT_2: begin
+            if(~instr_valid)
+                nextState = IDLE;
+            else
+                nextState = WAIT_2;
         end
 
         default: begin
@@ -108,6 +122,10 @@ always_comb begin: output_generation_logic
             rst_new_addr_valid = 1'b0;
         end
 
+        WAIT_1: begin
+            
+        end
+
         LD_INSTR: begin
             INST_REG_LD = 1'b1;
             busy = 1'b1;
@@ -124,6 +142,10 @@ always_comb begin: output_generation_logic
             CNT_EN = 1'b1;
             busy = 1'b1;
             rst_instr_valid = 1'b0;
+        end
+
+        WAIT_2: begin
+
         end
 
         default: begin

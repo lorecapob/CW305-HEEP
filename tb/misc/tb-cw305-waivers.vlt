@@ -12,7 +12,7 @@
 lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Signal is not*used: '*'"
 lint_off -rule UNUSED -file "*hw/fpga/cw305_usb_reg_fe.v" -match "Signal is not*used: '*'"
 lint_off -rule UNUSED -file "*hw/fpga/cw305_reg_aes.v" -match "Signal is not*used: '*'"
-lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not used: 'bridge_status'*"
+lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not driven, nor used: 'bridge_status_heep'*"
 lint_off -rule UNUSED -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not used: 'gpio'*"
 lint_off -rule UNDRIVEN -file "*hw/fpga/cw305_top.v" -match "Bits of signal are not driven: 'internal_gpio'*"
 lint_off -rule UNDRIVEN -file "*hw/fpga/cw305_top.v" -match "Signal is not driven: '*'"

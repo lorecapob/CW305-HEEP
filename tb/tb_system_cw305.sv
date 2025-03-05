@@ -25,7 +25,7 @@ module tb_system_cw305 #(
     output wire                         led3,           // blue LED
 
     // PLL
-    // input wire                          pll_clk1,       //PLL Clock Channel #1
+    input wire                          pll_clk1,       //PLL Clock Channel #1
     // input wire                          pll_clk2,       //PLL Clock Channel #2 (unused in this example)
 
     // 20-Pin Connector Stuff
@@ -66,7 +66,7 @@ module tb_system_cw305 #(
         .FREQ(CLK_FREQ * 1000),  // Hz
         .NAME("uart")
     ) u_uartdpi (
-        .clk_i (usb_clk),
+        .clk_i (pll_clk1),
         .rst_ni(rst_ni),
         .tx_o  (cw305_heep_uart_rx),
         .rx_i  (cw305_heep_uart_tx)
@@ -96,7 +96,7 @@ module tb_system_cw305 #(
     gpio_cnt #(
         .CntMax(32'd16)
     ) u_test_gpio (
-        .clk_i (usb_clk),
+        .clk_i (pll_clk1),
         .rst_ni(rst_ni),
         .gpio_i(gpio[30]),
         .gpio_o(gpio[31])
@@ -127,7 +127,7 @@ module tb_system_cw305 #(
         .led3(led3),
 
         // PLL
-        .pll_clk1(usb_clk), // Connected to USB clock just for simulation purpose
+        .pll_clk1(pll_clk1),
         //.pll_clk2(pll_clk2),
 
         // 20-Pin Connector Stuff

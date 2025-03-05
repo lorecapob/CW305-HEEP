@@ -126,6 +126,10 @@ int tmp_instruction = 0;
 int cw305ReadData = 0;
 // ----------------------------------------------------------
 
+// ------ Global variable for the PLL clock -----------------
+int pll_cnt = 0;
+// ----------------------------------------------------------
+
 int main(int argc, char *argv[])
 {
     // Exit value
@@ -325,7 +329,7 @@ int main(int argc, char *argv[])
         // Firmware loading procedure replaced by the HW bridge
         while (genReqBridge(hex_file, dut, drv, req)) // This loop goes on until the end of file is reached
         {
-            if (req->instr_valid || req->addr_valid) //#TODO: rinominare valid in instr_valid
+            if (req->instr_valid || req->addr_valid)
             {
                 // Check if the address is in the correct range
                 if (req->address >= 0x180)
@@ -407,6 +411,7 @@ void initDut(Vtb_system_cw305 *dut, uint8_t boot_mode, uint8_t exec_from_flash)
 {
     // Clock and reset
     dut->clk_i          = 0;
+    dut->pll_clk1       = 0;
     dut->rst_ni         = 1;
     dut->usb_rdn        = 1;
     dut->usb_wrn        = 1;
@@ -422,6 +427,13 @@ void initDut(Vtb_system_cw305 *dut, uint8_t boot_mode, uint8_t exec_from_flash)
 void clkGen(Vtb_system_cw305 *dut)
 {
     dut->clk_i ^= 1;
+
+    pll_cnt++;
+    // Generate the PLL clock
+    if (pll_cnt == 15){
+        dut->pll_clk1 ^= 1;
+        pll_cnt = 1;
+    }
 }
 
 void rstDut(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace)
@@ -524,7 +536,7 @@ void sendInstr(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace, R
     // status[2] = 1 -> address valid
     do{
         readByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, 0);
-    } while ((cw305ReadData & 0x2)); // Wait until the bridge is ready to accept new instructions
+    } while ((cw305ReadData & 0x2) >> 1 || (cw305ReadData & 0x04) >> 2); // Wait until the bridge is ready to accept new instructions
 
     // If the bridge is ready, send the instruction byte by byte
     vluint32_t cw305_reg_addr = 0;

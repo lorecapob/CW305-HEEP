@@ -135,12 +135,15 @@ module cw305_top #(
     // Added for the bridge
     wire [pINSTR_WIDTH-1:0] bridge_instruction;
     wire                    bridge_rst_instr_valid;
+    wire                    bridge_rst_instr_valid_usb;
     wire [pINSTR_WIDTH-1:0] bridge_new_address;
     wire                    bridge_rst_new_address_valid;
+    wire                    bridge_rst_new_address_valid_usb;
 
     wire [pINSTR_WIDTH-1:0] bridge_data;
     wire                    bridge_data_valid;
-    wire [7:0] bridge_status;
+    wire [7:0] bridge_status_usb;
+    wire [7:0] bridge_status_heep;
     // --------------------------------
 
     wire isout;
@@ -227,7 +230,7 @@ module cw305_top #(
        // Added for the bridge
        .O_instruction           (bridge_instruction),
        .O_address               (bridge_new_address),
-       .O_status                (bridge_status)
+       .O_status                (bridge_status_usb)
        
     );
 
@@ -391,30 +394,81 @@ module cw305_top #(
     .rdata(rdata_o),
 
     // Bridge Side
-    .instr_valid(bridge_status[1]),
-    .addr_valid(bridge_status[2]),
+    .instr_valid(bridge_status_heep[1]),
+    .addr_valid(bridge_status_heep[2]),
     .rst_new_address_valid(bridge_rst_new_address_valid),
     .rst_instr_valid(bridge_rst_instr_valid),
-    .busy(/*bridge_status[0]*/),
+    .busy(/*bridge_status_heep[0]*/),
     .instruction(bridge_instruction),
     .new_section_address(bridge_new_address),
     .OBI_rvalid(bridge_data_valid),
     .OBI_rdata(bridge_data)
   );
 
+  reg rst_new_addr_valid_to_regs;
+  reg rst_instr_valid_to_regs;
+
+  // Synchronizers for the handshake protocol between the reg_aes module (usb_clk) and the bridge (heep_clk)
+  dfs u_dfs_1_instr_valid (
+    .clk_src(usb_clk_buf),
+    .clk_dst(heep_clk),
+    .rst_src(resetn),
+    .rst_dst(resetn),
+    .din_src(bridge_status_usb[1]),
+    .dout_dst(bridge_status_heep[1])
+  );
+
+  dfs u_dfs_1_new_addr_valid (
+    .clk_src(usb_clk_buf),
+    .clk_dst(heep_clk),
+    .rst_src(resetn),
+    .rst_dst(resetn),
+    .din_src(bridge_status_usb[2]),
+    .dout_dst(bridge_status_heep[2])
+  );
+
+  // Synchonizers for the handshake protocol between the bridge (heep_clk) and the reg_aes module (usb_clk)
+  dfs u_dfs_2_rst_instr_valid (
+    .clk_src(heep_clk),
+    .clk_dst(usb_clk_buf),
+    .rst_src(resetn),
+    .rst_dst(resetn),
+    .din_src(bridge_rst_instr_valid),
+    .dout_dst(bridge_rst_instr_valid_usb)
+  );
+
+  dfs u_dfs_rst_new_addr_valid (
+    .clk_src(heep_clk),
+    .clk_dst(usb_clk_buf),
+    .rst_src(resetn),
+    .rst_dst(resetn),
+    .din_src(bridge_rst_new_address_valid),
+    .dout_dst(bridge_rst_new_address_valid_usb)
+  );
+
+  // CU for the handshake protocol between the bridge (heep_clock) and the reg_aes module (usb_clk)
+  handshake_CU u_handshake_CU (
+    .usb_clk(usb_clk_buf),
+    .rst_n(resetn),
+    .rst_new_addr_valid_from_bridge_i(bridge_rst_new_address_valid_usb),
+    .rst_instr_valid_from_bridge_i(bridge_rst_instr_valid_usb),
+    .rst_new_addr_valid_to_regs_o(rst_new_addr_valid_to_regs),
+    .rst_instr_valid_to_regs_o(rst_instr_valid_to_regs)
+  );
+
   // The bridge drives a MUX that selects which data has to be written to the reg_aes module.
   // This is necessary to reset the status flags using the same interface used also by the 
   // usb_reg_fe module.
   always @(*) begin
-    if (~bridge_rst_new_address_valid) begin
+    if (~rst_new_addr_valid_to_regs) begin
       reg_address = `REG_BRIDGE_STATUS;
-      write_data  = bridge_status & ~(8'b00000100);
+      write_data  = bridge_status_usb & ~(8'b00000100);
       reg_write   = 1'b1;
     end
 
-    else if (~bridge_rst_instr_valid) begin
+    else if (~rst_instr_valid_to_regs) begin
       reg_address = `REG_BRIDGE_STATUS;
-      write_data  = bridge_status & ~(8'b00000010);
+      write_data  = bridge_status_usb & ~(8'b00000010);
       reg_write   = 1'b1;
     end
 

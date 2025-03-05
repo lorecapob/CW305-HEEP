@@ -34,6 +34,12 @@ filesets:
     - hw/vendor/cw305_bridge/bridge2xheep.sv
     file_type: systemVerilogSource
 
+  rtl-CDC:
+    files:
+    - hw/vendor/Cross_Domain_Clock/dfs.v
+    - hw/vendor/Cross_Domain_Clock/handshake_CU.v
+    file_type: verilogSource
+
   # GR-HEEP RTL
   rtl-gr-heep:
     depend:
@@ -110,6 +116,7 @@ targets:
     - rtl-x-heep
     - rtl-gr-heep
     - rtl-bridge
+    - rtl-CDC
     - rtl
     toplevel: cw305_top
 
