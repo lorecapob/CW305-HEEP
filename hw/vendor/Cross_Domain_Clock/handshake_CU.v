@@ -15,7 +15,16 @@ module handshake_CU (
     output  reg  rst_instr_valid_to_regs_o
 );
 
-enum [5:0] {RESET, IDLE, RST_ADDR, WAIT_1, RST_INSTR, WAIT_2} present_state, next_state;
+typedef enum reg [5:0] {
+    RESET = 6'b000001,
+    IDLE = 6'b000010,
+    RST_ADDR = 6'b000100,
+    WAIT_1 = 6'b001000,
+    RST_INSTR = 6'b010000,
+    WAIT_2 = 6'b100000
+} state_t;
+
+state_t present_state, next_state;
 
 always @(*) begin: next_state_logic
     case(present_state)
