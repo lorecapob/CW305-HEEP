@@ -405,8 +405,8 @@ module cw305_top #(
     .OBI_rdata(bridge_data)
   );
 
-  reg rst_new_addr_valid_to_regs;
-  reg rst_instr_valid_to_regs;
+  wire rst_new_addr_valid_to_regs;
+  wire rst_instr_valid_to_regs;
 
   // Synchronizers for the handshake protocol between the reg_aes module (usb_clk) and the bridge (heep_clk)
   dfs u_dfs_1_instr_valid (
