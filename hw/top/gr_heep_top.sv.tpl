@@ -7,14 +7,13 @@
 // Date: 16/10/2024
 // Description: GR-heep top-level module
 
-module gr_heep_top 
-  import obi_pkg::*;
-(
+module gr_heep_top (
     // X-HEEP interface
 % for pad in total_pad_list:
 ${pad.x_heep_system_interface}
 % endfor
 );
+  import obi_pkg::*;
   import reg_pkg::*;
   import gr_heep_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -255,11 +254,16 @@ ${pad.core_v_mini_mcu_bonding}
   // ------------------------
   
   // Added for the bridge
-  // Just one signal since the type is obi_req_t
-  assign heep_slave_req[0] = req_from_bridge;
+  assign heep_slave_req[0].req    = req_i;
+  assign heep_slave_req[0].we     = we_i;
+  assign heep_slave_req[0].be     = be_i;
+  assign heep_slave_req[0].addr   = addr_i;
+  assign heep_slave_req[0].wdata  = wdata_i;
 
-  // Just one signal since the type is obi_resp_t
-  assign resp_from_xheep   = heep_slave_rsp[0];
+  assign gnt_o    = heep_slave_rsp[0].gnt;
+  assign rvalid_o = heep_slave_rsp[0].rvalid;
+  assign rdata_o  = heep_slave_rsp[0].rdata;
+
 
   // External interrupts
   // -------------------

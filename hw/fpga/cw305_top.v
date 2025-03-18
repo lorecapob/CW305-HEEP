@@ -97,7 +97,6 @@ module cw305_top #(
     output wire        debug_heep_uart_tx
   );
 
-  import obi_pkg::*;
 
    wire        internal_exit_valid_o;
    wire [31:0] internal_exit_value_o;
@@ -282,8 +281,6 @@ module cw305_top #(
   wire        OBI_rvalid_o;
   wire [31:0] OBI_rdata_o;
 
-  obi_req_t req_from_bridge;
-  obi_resp_t resp_from_xheep;
 
   // DUT
   // ---
@@ -359,17 +356,15 @@ module cw305_top #(
     .exit_value_o        (internal_exit_value_o[0]),
 
     // Bridge signals
-    // .req_i                (req_i),
-    // .we_i                 (we_i),
-    // .be_i                 (be_i),
-    // .addr_i               (addr_i),
-    // .wdata_i              (wdata_i),
-    .req_from_bridge      (req_from_bridge),
-    
-    // .gnt_o                (gnt_o),
-    // .rvalid_o             (rvalid_o),
-    // .rdata_o              (rdata_o)
-    .resp_from_xheep       (resp_from_xheep)
+    .req_i                (req_i),
+    .we_i                 (we_i),
+    .be_i                 (be_i),
+    .addr_i               (addr_i),
+    .wdata_i              (wdata_i),
+
+    .gnt_o                (gnt_o),
+    .rvalid_o             (rvalid_o),
+    .rdata_o              (rdata_o)
 
   );
 
@@ -389,19 +384,16 @@ module cw305_top #(
     .rst_n(resetn),
 
     // HEEP Side
-    // .req(req_i),
-    // .we(we_i),
-    // .be(be_i),
-    // .addr(addr_i),
-    // .wdata(wdata_i),
-    .req_from_bridge(req_from_bridge),
+    .req(req_i),
+    .we(we_i),
+    .be(be_i),
+    .addr(addr_i),
+    .wdata(wdata_i),
+    .gnt(gnt_o),
+    .rvalid(rvalid_o),
+    .rdata(rdata_o),
 
-    // .gnt(gnt_o),
-    // .rvalid(rvalid_o),
-    // .rdata(rdata_o),
-    .resp_from_xheep(resp_from_xheep),
-
-    // Registers Side
+    // Bridge Side
     .instr_valid(bridge_status_heep[1]),
     .addr_valid(bridge_status_heep[2]),
     .rst_new_address_valid(bridge_rst_new_address_valid),
