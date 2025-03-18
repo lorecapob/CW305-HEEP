@@ -9,16 +9,18 @@ module bridge2xheep
 
     // ####### HEEP side #######
     // OBI request
-    output logic req,
-    output logic we,
-    output logic [3:0] be,
-    output logic [31:0] addr,
-    output logic [31:0] wdata,
+    // output logic req,
+    // output logic we,
+    // output logic [3:0] be,
+    // output logic [31:0] addr,
+    // output logic [31:0] wdata,
+    output obi_req_t req_from_bridge,
 
     // OBI response
-    input logic gnt,
-    input logic rvalid,
-    input logic [31:0] rdata,
+    // input logic gnt,
+    // input logic rvalid,
+    // input logic [31:0] rdata,
+    input obi_resp_t resp_from_xheep,
 
     // ####### MCU side #######
     // Status register flags
@@ -39,7 +41,6 @@ module bridge2xheep
 );
 
 
-logic [31:0] internal_addr;
 
 logic CNT_RSTN;
 logic CNT_LD;
@@ -47,6 +48,27 @@ logic CNT_EN;
 
 logic INST_REG_RSTN;
 logic INST_REG_LD;
+
+logic req;
+logic we;
+logic [3:0] be;
+// logic [31:0] addr;
+logic [31:0] internal_addr;
+logic [31:0] wdata;
+
+logic gnt;
+logic rvalid;
+logic [31:0] rdata;
+
+assign req_from_bridge.req      = req;
+assign req_from_bridge.we       = we;
+assign req_from_bridge.be       = be;
+assign req_from_bridge.addr     = internal_addr;
+assign req_from_bridge.wdata    = wdata;
+
+assign gnt      = resp_from_xheep.gnt;
+assign rdata    = resp_from_xheep.rdata;
+assign rvalid   = resp_from_xheep.rvalid;
 
 assign OBI_rdata = rdata;
 assign OBI_rvalid = rvalid;
@@ -88,7 +110,7 @@ counter_plus4 #() addr_counter (
     .cnt_out(internal_addr)
 );
 
-assign addr = internal_addr;
+// assign addr = internal_addr;
 
 
 endmodule

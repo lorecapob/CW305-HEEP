@@ -7,7 +7,9 @@
 // Date: 16/10/2024
 // Description: GR-heep top-level module
 
-module gr_heep_top (
+module gr_heep_top
+  import obi_pkg::*;
+(
   // X-HEEP interface
   inout wire rst_ni,
   inout wire boot_select_i,
@@ -51,20 +53,10 @@ module gr_heep_top (
   inout wire clk_i,
   inout wire exit_value_o,
 
-  // Added to connect the bridge
-  // Request section for the OBI interface
-  input logic        req_i,
-  input logic        we_i,
-  input logic [ 3:0] be_i,
-  input logic [31:0] addr_i,
-  input logic [31:0] wdata_i,
-
-  // Response section for the OBI interface
-  output logic        gnt_o,
-  output logic        rvalid_o,
-  output logic [31:0] rdata_o
+  // OBI interface
+  input obi_req_t req_from_bridge,
+  output obi_resp_t resp_from_xheep
 );
-  import obi_pkg::*;
   import reg_pkg::*;
   import gr_heep_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -529,16 +521,11 @@ module gr_heep_top (
   // ------------------------
 
   // Added for the bridge
-  assign heep_slave_req[0].req                       = req_i;
-  assign heep_slave_req[0].we                        = we_i;
-  assign heep_slave_req[0].be                        = be_i;
-  assign heep_slave_req[0].addr                      = addr_i;
-  assign heep_slave_req[0].wdata                     = wdata_i;
+  // Just one signal since the type is obi_req_t
+  assign heep_slave_req[0]                           = req_from_bridge;
 
-  assign gnt_o                                       = heep_slave_rsp[0].gnt;
-  assign rvalid_o                                    = heep_slave_rsp[0].rvalid;
-  assign rdata_o                                     = heep_slave_rsp[0].rdata;
-
+  // Just one signal since the type is obi_resp_t
+  assign resp_from_xheep                             = heep_slave_rsp[0];
 
   // External interrupts
   // -------------------
