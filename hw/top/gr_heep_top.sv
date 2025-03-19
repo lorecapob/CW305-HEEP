@@ -8,6 +8,20 @@
 // Description: GR-heep top-level module
 
 module gr_heep_top (
+  // Added to connect the bridge2Xheep
+
+  // Request section for the OBI interface
+  input logic        req_i,
+  input logic        we_i,
+  input logic [ 3:0] be_i,
+  input logic [31:0] addr_i,
+  input logic [31:0] wdata_i,
+
+  // Response section for the OBI interface
+  output logic        gnt_o,
+  output logic        rvalid_o,
+  output logic [31:0] rdata_o,
+
   // X-HEEP interface
   inout wire rst_ni,
   inout wire boot_select_i,
@@ -49,20 +63,7 @@ module gr_heep_top (
 
 
   inout wire clk_i,
-  inout wire exit_value_o,
-
-  // Added to connect the bridge
-  // Request section for the OBI interface
-  input logic        req_i,
-  input logic        we_i,
-  input logic [ 3:0] be_i,
-  input logic [31:0] addr_i,
-  input logic [31:0] wdata_i,
-
-  // Response section for the OBI interface
-  output logic        gnt_o,
-  output logic        rvalid_o,
-  output logic [31:0] rdata_o
+  inout wire exit_value_o
 );
   import obi_pkg::*;
   import reg_pkg::*;
