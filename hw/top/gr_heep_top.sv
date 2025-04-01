@@ -79,72 +79,72 @@ module gr_heep_top (
   // INTERNAL SIGNALS
   // ----------------
   // Synchronized reset
-  logic rst_nin_sync;
+  logic                                               rst_nin_sync;
 
   // Exit value
-  logic [31:0] exit_value;
+  logic      [                             31:0]      exit_value;
 
   // X-HEEP external master ports
-  obi_req_t heep_core_instr_req;
-  obi_resp_t heep_core_instr_rsp;
-  obi_req_t heep_core_data_req;
-  obi_resp_t heep_core_data_rsp;
-  obi_req_t heep_debug_master_req;
-  obi_resp_t heep_debug_master_rsp;
-  obi_req_t [DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req;
-  obi_resp_t [DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_rsp;
-  obi_req_t [DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req;
-  obi_resp_t [DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_rsp;
-  obi_req_t [DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req;
-  obi_resp_t [DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_rsp;
+  obi_req_t                                           heep_core_instr_req;
+  obi_resp_t                                          heep_core_instr_rsp;
+  obi_req_t                                           heep_core_data_req;
+  obi_resp_t                                          heep_core_data_rsp;
+  obi_req_t                                           heep_debug_master_req;
+  obi_resp_t                                          heep_debug_master_rsp;
+  obi_req_t  [         DMA_NUM_MASTER_PORTS-1:0]      heep_dma_read_req;
+  obi_resp_t [         DMA_NUM_MASTER_PORTS-1:0]      heep_dma_read_rsp;
+  obi_req_t  [         DMA_NUM_MASTER_PORTS-1:0]      heep_dma_write_req;
+  obi_resp_t [         DMA_NUM_MASTER_PORTS-1:0]      heep_dma_write_rsp;
+  obi_req_t  [         DMA_NUM_MASTER_PORTS-1:0]      heep_dma_addr_req;
+  obi_resp_t [         DMA_NUM_MASTER_PORTS-1:0]      heep_dma_addr_rsp;
 
   // X-HEEP slave ports
-  obi_req_t [ExtXbarNmasterRnd-1:0] heep_slave_req;
-  obi_resp_t [ExtXbarNmasterRnd-1:0] heep_slave_rsp;
+  obi_req_t  [            ExtXbarNmasterRnd-1:0]      heep_slave_req;
+  obi_resp_t [            ExtXbarNmasterRnd-1:0]      heep_slave_rsp;
 
   // External master ports
-  obi_req_t [ExtXbarNmasterRnd-1:0] gr_heep_master_req;
-  obi_resp_t [ExtXbarNmasterRnd-1:0] gr_heep_master_resp;
+  obi_req_t  [            ExtXbarNmasterRnd-1:0]      gr_heep_master_req;
+  obi_resp_t [            ExtXbarNmasterRnd-1:0]      gr_heep_master_resp;
 
   // X-HEEP external peripheral master ports
-  reg_req_t heep_peripheral_req;
-  reg_rsp_t heep_peripheral_rsp;
+  reg_req_t                                           heep_peripheral_req;
+  reg_rsp_t                                           heep_peripheral_rsp;
 
   // Interrupt vector
-  logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_int_vector;
+  logic      [core_v_mini_mcu_pkg::NEXT_INT-1:0]      ext_int_vector;
 
   // Power Manager signals
-  logic cpu_subsystem_powergate_switch_n;
-  logic cpu_subsystem_powergate_switch_ack_n;
-  logic peripheral_subsystem_powergate_switch_n;
-  logic peripheral_subsystem_powergate_switch_ack_n;
+  logic                                               cpu_subsystem_powergate_switch_n;
+  logic                                               cpu_subsystem_powergate_switch_ack_n;
+  logic                                               peripheral_subsystem_powergate_switch_n;
+  logic                                               peripheral_subsystem_powergate_switch_ack_n;
 
   // External SPC interface signals
-  reg_req_t [AoSPCNum-1:0] ext_ao_peripheral_req;
-  reg_rsp_t [AoSPCNum-1:0] ext_ao_peripheral_resp;
+  reg_req_t  [                     AoSPCNum-1:0]      ext_ao_peripheral_req;
+  reg_rsp_t  [                     AoSPCNum-1:0]      ext_ao_peripheral_resp;
 
 
   // Pad controller
-  reg_req_t pad_req;
-  reg_rsp_t pad_rsp;
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][0:0] pad_muxes;
+  reg_req_t                                           pad_req;
+  reg_rsp_t                                           pad_rsp;
+  logic      [ core_v_mini_mcu_pkg::NUM_PAD-1:0][0:0] pad_muxes;
 
   // External power domains
-  logic [ExtDomainsRnd-1:0] external_subsystem_powergate_switch_n;
-  logic [ExtDomainsRnd-1:0] external_subsystem_powergate_switch_ack_n;
-  logic [ExtDomainsRnd-1:0] external_subsystem_powergate_iso_n;
+  logic      [                ExtDomainsRnd-1:0]      external_subsystem_powergate_switch_n;
+  logic      [                ExtDomainsRnd-1:0]      external_subsystem_powergate_switch_ack_n;
+  logic      [                ExtDomainsRnd-1:0]      external_subsystem_powergate_iso_n;
 
   // External RAM banks retentive mode control
-  logic [ExtDomainsRnd-1:0] external_ram_banks_set_retentive_n;
+  logic      [                ExtDomainsRnd-1:0]      external_ram_banks_set_retentive_n;
 
   // External domains reset
-  logic [ExtDomainsRnd-1:0] external_subsystem_rst_n;
+  logic      [                ExtDomainsRnd-1:0]      external_subsystem_rst_n;
 
   // External domains clock-gating
-  logic [ExtDomainsRnd-1:0] external_subsystem_clkgate_en_n;
+  logic      [                ExtDomainsRnd-1:0]      external_subsystem_clkgate_en_n;
 
-  logic ext_debug_req;
-  logic ext_debug_reset_n;
+  logic                                               ext_debug_req;
+  logic                                               ext_debug_reset_n;
 
   // Tie the CV-X-IF coprocessor signals to a default value that will
   // receive petitions but reject all offloaded instructions
