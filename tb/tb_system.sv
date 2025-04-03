@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
 // File: tb_system.sv
-// Author: Michele Caon, Luigi Giuffrida
+// Author: Michele Caon, Luigi Giuffrida, Lorenzo Capobianco
 // Date: 16/10/2024
-// Description: gr-heep testbench system
+// Description: cw305-heep testbench system
 
 module tb_system #(
     parameter int unsigned CLK_FREQ = 32'd100_000  // kHz

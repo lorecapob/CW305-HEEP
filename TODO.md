@@ -19,10 +19,9 @@
 - [x] Fix the boot select mode
 - [x] Fix the cw305 read problem
 - [x] Replace the valid with instr_valid for the request class
-- [ ] Add an enum case for the bridge status for debug purpose
 - [x] Remove debug printf
 - [x] Fix the UART output for simulation purposes
 - [x] Create core file for synthesis
 - [x] Add constraints file for Vivado
-- [ ] Change gr-heep pad ring pins
-- [ ] Change the gr_heep templates in a way that the external bus is instanciated and the connenction to the bridge is generated automatically
+- [x] Change gr-heep pad ring pins
+- [x] Add author and copyright in all my own files

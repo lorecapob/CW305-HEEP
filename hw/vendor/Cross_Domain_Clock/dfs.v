@@ -1,7 +1,15 @@
-// Dual Flip-Flop Synchronizer.
-// This module is used to synchronize signals between different clock domains.
-// It consist of an output flip flop from the signal arriving from the source clock domain
-// and two input flip flops for the destination clock domain.
+/*
+ * Copyright 2025 Politecnico di Torino.
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ *
+ * Author: Lorenzo Capobianco
+ * Date: 03/04/2025
+ * Description: Dual Flip-Flop Synchronizer. This module is used to synchronize signals 
+                between different clock domains. It consist of an output flip flop from 
+                the signal arriving from the source clock domain and two input flip flops 
+                for the destination clock domain.
+*/
 
 module dfs (
     input wire  clk_src, //source clk

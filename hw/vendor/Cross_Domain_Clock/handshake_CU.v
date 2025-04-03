@@ -1,10 +1,19 @@
-// This Control Unit manages the handshake protocol between the source and destination clock domains
-// for the CW305 XHEEP project. The board has two clock domains: the USB clock domain, fixed at 96 MHz,
-// and the FPGA clock domain, which can be configured to run at a frequency in the range from roughly 5MHz to 160MHz.
-// The handshake protocol is used to ensure that the USB clock domain and the FPGA clock domain are in sync.
-// For the XHEEP case, the USB can send new data only if XHEEP is ready to receive it. This is done by using a
-// status regiter in the FPGA that is set by the USB and cleared by the FPGA.
-// This CU works with the USB clock domain and recieves the reset signal from the FPGA clock domain.
+/*
+ * Copyright 2025 Politecnico di Torino.
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ *
+ * Author: Lorenzo Capobianco
+ * Date: 03/04/2025
+ * Description: This Control Unit manages the handshake protocol between the source and destination clock domains 
+                for the CW305 XHEEP project. The board has two clock domains: the USB clock domain, fixed at 96 MHz,
+                and the FPGA clock domain, which can be configured to run at a frequency in the range from roughly 
+                5MHz to 160MHz. The handshake protocol is used to ensure that the USB clock domain and the FPGA
+                clock domain are in sync. For the XHEEP case, the USB can send new data only if XHEEP is ready to
+                receive it. This is done by using a status regiter in the FPGA that is set by the USB and cleared 
+                by the FPGA. This CU works with the USB clock domain and recieves the reset signal from the FPGA 
+                clock domain.
+*/
 
 module handshake_CU (
     input   wire usb_clk,

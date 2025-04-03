@@ -1,3 +1,14 @@
+/*
+ * Copyright 2025 Politecnico di Torino.
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ *
+ * Author: Lorenzo Capobianco
+ * Date: 03/04/2025
+ * Description: Testbench wrapper for the CW305 system. It includes the CW305 top module and the UART DPI emulator.
+                It also includes the SPI flash emulator and a GPIO counter for testing purposes.
+ */
+
 module tb_system_cw305 #(
     parameter pBYTECNT_SIZE = 2,
     parameter pADDR_WIDTH = 21,

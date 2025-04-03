@@ -1,3 +1,13 @@
+/*
+ * Copyright 2025 Politecnico di Torino.
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ *
+ * Author: Lorenzo Capobianco
+ * Date: 03/04/2025
+ * Description: Instruction register module. It stores the instruction to be sent to X-HEEP.
+ */
+
 module instr_reg #()
 (
     input logic clk,

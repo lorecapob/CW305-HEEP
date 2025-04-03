@@ -25,6 +25,15 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of NewAE Technology Inc.
 */
 
+/*
+ * Copyright 2025 Politecnico di Torino.
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ *
+ * Author: Lorenzo Capobianco
+ * Date: 03/04/2025
+ * Description: This module selects the input clock for the CW305 board.
+ */
 
 `default_nettype none
 //`timescale 1ns / 1ns
