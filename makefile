@@ -89,7 +89,8 @@ SW_DIR := sw
 PARAMS = $(PROJECT)
 
 # Arch for the software build
-ARCH ?= rv32imc
+#ARCH ?= rv32imc
+ARCH ?= rv32imc_zicsr
 
 # ----- VARIABLES ----- #
 
@@ -208,7 +209,7 @@ verilator-run: | check-firmware .verilator-check-params
 ## Launch simulation without waveform dumping
 .PHONY: verilator-opt
 verilator-opt: | check-firmware .verilator-check-params
-	$(FUSESOC) run --no-export --target sim --tool verilator --run $(FUSESOC_FLAGS) polito:gr_heep:gr_heep \
+	$(FUSESOC) run --no-export --target sim --tool verilator --run $(FUSESOC_FLAGS) polito:cw305_heep:cw305_heep \
 		--log_level=$(LOG_LEVEL) \
 		--firmware=$(FIRMWARE) \
 		--boot_mode=$(BOOT_MODE) \
