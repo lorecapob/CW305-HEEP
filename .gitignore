@@ -27,3 +27,6 @@ tags
 # Vivado
 *vivado*
 .Xil/
+
+# Serial data
+picocomSerial.log

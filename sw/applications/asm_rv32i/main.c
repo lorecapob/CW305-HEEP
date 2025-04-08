@@ -51,25 +51,27 @@
 #include "api.h"
 #include "crypto_aead.h"
 
-#if defined(AVR_UART)
-#include "avr_uart.h"
-#endif
-
 #define KAT_SUCCESS 0
-#define KAT_FILE_OPEN_ERROR -1
-#define KAT_DATA_ERROR -3
 #define KAT_CRYPTO_FAILURE -4
 
-#define MAX_FILE_NAME 256
 #ifndef MAX_MESSAGE_LENGTH
 #define MAX_MESSAGE_LENGTH 32
 #endif
 #define MAX_ASSOCIATED_DATA_LENGTH 32
 
+/* By default, printfs are disabled in order to speed-up the simulation. */
+#define ENABLE_PRINTF 1
+
+#if ENABLE_PRINTF
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
+
 void init_buffer(unsigned char offset, unsigned char* buffer,
                  unsigned long long numbytes);
 
-void fprint_bstr(/*FILE* fp,*/ const char* label, const unsigned char* data,
+void fprint_bstr(const char* label, const unsigned char* data,
                  unsigned long long length);
 
 int generate_test_vectors();
@@ -86,23 +88,19 @@ int main() {
   // Execute the algorithm
   int ret = generate_test_vectors();
   if (ret != KAT_SUCCESS) {
-    printf(/*stderr,*/ "test vector generation failed with code %d\n", ret);
+    PRINTF("test vector generation failed with code %d\r\n", ret);
   }
 
   // Read the number of cycles
   CSR_READ(CSR_REG_MCYCLE, &cycles);
   
-  printf("Program finished in %d cycles\n", cycles);
+  // Always on printf to signal the end of the program and the number of cycles required
+  printf("Program finished in %d cycles\r\n", cycles);
 
-  // exit(ret);
   return ret;
 }
 
 int generate_test_vectors() {
-  //FILE* fp;
-#if !defined(AVR_UART)
-  char fileName[MAX_FILE_NAME];
-#endif
   unsigned char key[CRYPTO_KEYBYTES];
   unsigned char nonce[CRYPTO_NPUBBYTES];
   unsigned char* msg;
@@ -117,20 +115,6 @@ int generate_test_vectors() {
   init_buffer(0x00, key, sizeof(key));
   init_buffer(0x10, nonce, sizeof(nonce));
 
-#if !defined(AVR_UART)
-  // printf(/*fileName,*/ "LWC_AEAD_KAT_%d_%d.txt", (CRYPTO_KEYBYTES * 8),
-  //         (CRYPTO_NPUBBYTES * 8));
-  // if ((fp = fopen(fileName, "w")) == NULL) {
-  //   fprintf(stderr, "Couldn't open <%s> for write\n", fileName);
-  //   return KAT_FILE_OPEN_ERROR;
-  // }
-#else
-  avr_uart_init();
-  stdout = &avr_uart_output;
-  stdin = &avr_uart_input_echo;
-  fp = stdout;
-#endif
-
   for (mlen = 0; mlen <= MAX_MESSAGE_LENGTH; mlen++) {
     msg = malloc(mlen);
     msg2 = malloc(mlen);
@@ -141,35 +125,34 @@ int generate_test_vectors() {
       ad = malloc(adlen);
       init_buffer(0x30, ad, adlen);
 
-      // printf(/*fp,*/ "Count = %d\n", count++);
-      // fprint_bstr(/*fp,*/ "Key = ", key, CRYPTO_KEYBYTES);
-      // fprint_bstr(/*fp,*/ "Nonce = ", nonce, CRYPTO_NPUBBYTES);
-      // fprint_bstr(/*fp,*/ "PT = ", msg, mlen);
-      // fprint_bstr(/*fp,*/ "AD = ", ad, adlen);
+      PRINTF("Count = %d\r\n", count++);
+      fprint_bstr("Key = ", key, CRYPTO_KEYBYTES);
+      fprint_bstr("Nonce = ", nonce, CRYPTO_NPUBBYTES);
+      fprint_bstr("PT = ", msg, mlen);
+      fprint_bstr("AD = ", ad, adlen);
 
       if ((func_ret = crypto_aead_encrypt(ct, &clen, msg, mlen, ad, adlen, NULL,
                                           nonce, key)) != 0) {
-        printf(/*fp,*/ "crypto_aead_encrypt returned <%d>\n", func_ret);
+        PRINTF("crypto_aead_encrypt returned <%d>\r\n", func_ret);
         ret_val = KAT_CRYPTO_FAILURE;
         free(ad);
         break;
       }
 
-      // fprint_bstr(/*fp,*/ "CT = ", ct, clen);
-      // printf(/*fp,*/ "\n");
+      fprint_bstr("CT = ", ct, clen);
+      PRINTF("\r\n");
 
       if ((func_ret = crypto_aead_decrypt(msg2, &mlen2, NULL, ct, clen, ad,
                                           adlen, nonce, key)) != 0) {
-        printf(/*fp,*/ "crypto_aead_decrypt returned <%d>\n", func_ret);
+        PRINTF("crypto_aead_decrypt returned <%d>\r\n", func_ret);
         ret_val = KAT_CRYPTO_FAILURE;
         free(ad);
         break;
       }
 
       if (mlen != mlen2) {
-        printf(/*fp,*/
-                "crypto_aead_decrypt returned bad 'mlen': Got <%" PRIu32
-                ">, expected <%" PRIu32 ">\n",
+        PRINTF( "crypto_aead_decrypt returned bad 'mlen': Got <%" PRIu32
+                ">, expected <%" PRIu32 ">\r\n",
                 (uint32_t)mlen2, (uint32_t)mlen);
         ret_val = KAT_CRYPTO_FAILURE;
         free(ad);
@@ -177,7 +160,7 @@ int generate_test_vectors() {
       }
 
       if (memcmp(msg, msg2, mlen)) {
-        printf(/*fp,*/ "crypto_aead_decrypt did not recover the plaintext\n");
+        PRINTF("crypto_aead_decrypt did not recover the plaintext\r\n");
         ret_val = KAT_CRYPTO_FAILURE;
         free(ad);
         break;
@@ -187,7 +170,7 @@ int generate_test_vectors() {
       ct[0] ^= 1;
       if ((func_ret = crypto_aead_decrypt(msg2, &mlen2, NULL, ct, clen, ad,
                                           adlen, nonce, key)) == 0) {
-        printf(/*fp,*/ "crypto_aead_decrypt should have failed\n");
+        PRINTF("crypto_aead_decrypt should have failed\r\n");
         ret_val = KAT_CRYPTO_FAILURE;
         free(ad);
         break;
@@ -200,21 +183,15 @@ int generate_test_vectors() {
     if (ret_val != KAT_SUCCESS) break;
   }
 
-#if !defined(AVR_UART)
-  // fclose(fp);
-#else
-  printf(/*stderr,*/ "Press Ctrl-C to quit\n");
-#endif
-
   return ret_val;
 }
 
-void fprint_bstr(/*FILE* fp,*/ const char* label, const unsigned char* data,
+void fprint_bstr(const char* label, const unsigned char* data,
                  unsigned long long length) {
   unsigned long long i;
-  printf(/*fp,*/ "%s", label);
-  for (i = 0; i < length; i++) printf(/*fp,*/ "%02X", data[i]);
-  printf(/*fp,*/ "\n");
+  PRINTF("%s", label);
+  for (i = 0; i < length; i++) PRINTF("%02X", data[i]);
+  PRINTF("\r\n");
 }
 
 void init_buffer(unsigned char offset, unsigned char* buffer,
