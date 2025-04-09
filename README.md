@@ -22,6 +22,12 @@ docker pull ghcr.io/vlsi-lab/x-heep-toolchain:latest
 source <vivado-installation-path>/settings64.sh
 ```
 
+For what concerns the synthesis, it is required to install `conda` on the local machine, since `Vivado` is not available inside the container image and it relies on the `core-v-mini-mcu` environement.
+
+```
+conda activate core-v-mini-mcu
+```
+
 # Microcontroller generation and initialization
 `CW305-HEEP` generation is automated by means of a Python script. Some design parameters can be adjusted to user preferences, as described in [Read the docs - Generating the MCU](https://x-heep.readthedocs.io/en/latest/GettingStarted/GeneratingMCU.html).
 
@@ -71,6 +77,12 @@ make verilator-run
 ```
 Note: for the simulation purposes, all the `printf` statements are translated to UART calls. The output text is written to `build/polito_cw305_heep_cw305_heep_0.0.1/sim-verilator/uart.log` and automatically displayed when the previous two commands are executed.
 
+To run the simulation without without waveform dumping (faster):
+
+```
+make verilator-opt
+```
+
 To show the simulation waveforms using `gtkwave`:
 
 ```
@@ -85,6 +97,8 @@ make vivado-fpga
 ```
 
 The synthesis also supports `ILA` (Integrated Logic Analizer). For example purposes, an `ILA` instance is placed between the `bridge` and `X-HEEP` during the synthesis by default. It can be used to monitor the communication between these two modules.
+
+The generated bitsream can be found at `build/polito_cw305_heep_cw305_heep_0.0.1/cw305-vivado/polito_cw305_heep_cw305_heep_0.0.1.runs/impl_1/cw305_top.bit`
 
 # Cleaning
 To clean the build folder:
