@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.121 (w)1999-2024 BSI
-[*] Wed Mar  5 16:26:23 2025
+[*] Fri Apr 11 15:19:58 2025
 [*]
 [dumpfile] "/home/lorenzocapobianco/Progetti/Tesi_Magistrale/CW305-HEEP/build/polito_cw305_heep_cw305_heep_0.0.1/sim-verilator/logs/waves.fst"
-[dumpfile_mtime] "Wed Mar  5 16:25:27 2025"
-[dumpfile_size] 11018220
+[dumpfile_mtime] "Fri Apr 11 15:13:35 2025"
+[dumpfile_size] 20434359
 [savefile] "/home/lorenzocapobianco/Progetti/Tesi_Magistrale/CW305-HEEP/tb/misc/verilator-waves_cw305.gtkw"
-[timestart] 0
+[timestart] 1380415
 [size] 1920 1001
-[pos] -1 -1
-*-18.801027 1145074 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -27 -24
+*-5.801027 1380582 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.tb_system_cw305.
 [treeopen] TOP.tb_system_cw305.U_cw305_top.
@@ -113,9 +113,8 @@ TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.ao_peripheral_su
 -soc_ctrl_i_EXIT_LOOP
 @800200
 -HEEP_program_counter
-@23
-TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_core.pc_if[31:0]
 @22
+TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_core.pc_if[31:0]
 TOP.tb_system_cw305.U_cw305_top.u_gr_heep_top.u_core_v_mini_mcu.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_core.pc_id[31:0]
 @1000200
 -HEEP_program_counter
@@ -143,6 +142,11 @@ TOP.tb_system_cw305.debug_heep_uart_rx
 TOP.tb_system_cw305.U_cw305_top.led1
 TOP.tb_system_cw305.U_cw305_top.led2
 TOP.tb_system_cw305.U_cw305_top.led3
+@22
+TOP.tb_system_cw305.U_cw305_top.internal_gpio[31:0]
+TOP.tb_system_cw305.U_cw305_top.bridge_status_heep[7:0]
+@29
+TOP.tb_system_cw305.tio_trigger
 @1000200
 -Debug
 @800200

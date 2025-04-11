@@ -1,6 +1,12 @@
-// Copyright EPFL contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+/*
+ * Copyright 2025 Politecnico di Torino.
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ *
+ * Author: Lorenzo Capobianco
+ * Date: 11/04/2025
+ * Description: This program reads the value of GPIO 3 and writes it to GPIO 4.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +19,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -30,11 +36,12 @@ int main(int argc, char *argv[])
 
     gpio_cfg_t pin_cfg3 = {
         .pin = GPIO_INPUT_TRIGGER,
-        .mode = GpioModeIn
+        .mode = GpioModeIn,
+        .en_input_sampling = true,
     };
     gpio_res = gpio_config (pin_cfg3);
     if (gpio_res != GpioOk){
-        PRINTF("Gpio %d initialization failed!\n", GPIO_INPUT_TRIGGER);
+        PRINTF("Gpio %d initialization failed!\r\n", GPIO_INPUT_TRIGGER);
         return EXIT_FAILURE;
     }
 
@@ -44,19 +51,16 @@ int main(int argc, char *argv[])
     };
     gpio_res = gpio_config (pin_cfg4);
     if (gpio_res != GpioOk){
-        PRINTF("Gpio %d initialization failed!\n", GPIO_SCOPE_TRIGGER);
+        PRINTF("Gpio %d initialization failed!\r\n", GPIO_SCOPE_TRIGGER);
         return EXIT_FAILURE;
     }
 
-    if (gpio_read(GPIO_INPUT_TRIGGER, true)) {
-        PRINTF("GPIO %d is low.\n", GPIO_INPUT_TRIGGER);
-        gpio_write(GPIO_SCOPE_TRIGGER, false);
-        PRINTF("Driven GPIO %d is low.\n", GPIO_SCOPE_TRIGGER);
-    } else {
-        PRINTF("GPIO %d is high.\n", GPIO_INPUT_TRIGGER);
-        gpio_write(GPIO_SCOPE_TRIGGER, true);
-        PRINTF("Driven GPIO %d is high.\n", GPIO_SCOPE_TRIGGER);
-    }
+    bool pin_value = 0;
+
+    gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+    PRINTF("GPIO %d is %d.\r\n", GPIO_INPUT_TRIGGER, pin_value);
+    gpio_write(GPIO_SCOPE_TRIGGER, pin_value);
+    PRINTF("GPIO %d is driven %d.\r\n", GPIO_SCOPE_TRIGGER, pin_value);
 
     return EXIT_SUCCESS;
 }
