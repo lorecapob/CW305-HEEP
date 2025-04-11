@@ -71,9 +71,9 @@ module cw305_top #(
     //input wire                        pll_clk2,       //PLL Clock Channel #2 (unused in this example)
 
     // 20-Pin Connector Stuff
-    // output wire                         tio_trigger,
+    output wire                         tio_trigger,
     // output wire                         tio_clkout,
-    input  wire                         tio_clkin,
+    // input  wire                         tio_clkin,
     inout  wire                         IO_0,
     inout  wire                         IO_1,
 
@@ -251,7 +251,8 @@ module cw305_top #(
        .I_j16_sel               (j16_sel),
        .I_k16_sel               (k16_sel),
        .I_clock_reg             (clk_settings),
-       .I_cw_clkin              (tio_clkin),
+       // .I_cw_clkin              (tio_clkin),
+       .I_cw_clkin              (1'b0), // No external clock connected to the 20-pin connector
        .I_pll_clk1              (pll_clk1),
        .O_cw_clkout             (),
        .O_cryptoclk             (heep_clk)
@@ -313,10 +314,10 @@ module cw305_top #(
     //`endif
 
     .gpio_2_o           (internal_gpio[2]),
+    .gpio_3_i           (internal_gpio[3]),
+    .gpio_4_o           (internal_gpio[4]),
 
     //`ifdef VERILATOR
-    // .gpio_3_io           (internal_gpio[3]),
-    // .gpio_4_io           (internal_gpio[4]),
     // .gpio_5_io           (internal_gpio[5]),
     // .gpio_6_io           (internal_gpio[6]),
     // .gpio_7_io           (internal_gpio[7]),
@@ -378,6 +379,12 @@ module cw305_top #(
 
   );
 
+  // Scope trigger
+  assign tio_trigger = internal_gpio[4];
+
+  // Software trigger for X-HEEP. It is used to trigger the program execution
+  assign internal_gpio[3] = bridge_status_heep[3];
+
   // Debug LED
   assign led3 = internal_gpio[2];
 
@@ -435,6 +442,16 @@ module cw305_top #(
     .rst_dst(resetn),
     .din_src(bridge_status_usb[2]),
     .dout_dst(bridge_status_heep[2])
+  );
+
+  // Synchonizer for the software trigger signal
+  dfs u_dfs_1_xheep_trigger (
+    .clk_src(usb_clk_buf),
+    .clk_dst(heep_clk),
+    .rst_src(resetn),
+    .rst_dst(resetn),
+    .din_src(bridge_status_usb[3]),
+    .dout_dst(bridge_status_heep[3])
   );
 
   // Synchonizers for the handshake protocol between the bridge (heep_clk) and the reg_aes module (usb_clk)

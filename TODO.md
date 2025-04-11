@@ -25,3 +25,6 @@
 - [x] Add constraints file for Vivado
 - [x] Change gr-heep pad ring pins
 - [x] Add author and copyright in all my own files
+- [ ] Add 2 extra GPIO to gr_heep_top. GPIO3 (input) will be connected to bridge_status[3] and will be used as input trigger for the program execution (basically, XHEEP polls on GPIO 3 value). GPIO4 (output) will be used as trigger for the picoscope, for data acquisition.
+- [ ] Modify the testbench in order to cover the previous case scenario
+- [ ] Modify the FPGA pin constraints file

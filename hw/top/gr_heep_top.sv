@@ -37,6 +37,8 @@ module gr_heep_top (
   inout wire gpio_0_io,
   inout wire gpio_1_io,
   inout wire gpio_2_o,
+  inout wire gpio_3_i,
+  inout wire gpio_4_o,
 
 
 
@@ -194,6 +196,10 @@ module gr_heep_top (
 
   logic gpio_2_in_x, gpio_2_out_x, gpio_2_oe_x;
 
+  logic gpio_3_in_x, gpio_3_out_x, gpio_3_oe_x;
+
+  logic gpio_4_in_x, gpio_4_out_x, gpio_4_oe_x;
+
   logic spi_flash_sck_in_x, spi_flash_sck_out_x, spi_flash_sck_oe_x;
 
   logic spi_flash_cs_0_in_x, spi_flash_cs_0_out_x, spi_flash_cs_0_oe_x;
@@ -338,6 +344,10 @@ module gr_heep_top (
     .gpio_1_oe_o(gpio_1_oe_x),
 
     .gpio_2_o(gpio_2_out_x),
+
+    .gpio_3_i(gpio_3_in_x),
+
+    .gpio_4_o(gpio_4_out_x),
 
     .spi_flash_sck_i   (spi_flash_sck_in_x),
     .spi_flash_sck_o   (spi_flash_sck_out_x),
@@ -582,6 +592,10 @@ module gr_heep_top (
     .gpio_1_oe_i          (gpio_1_oe_x),
     .gpio_2_io            (gpio_2_o),
     .gpio_2_i             (gpio_2_out_x),
+    .gpio_3_io            (gpio_3_i),
+    .gpio_3_o             (gpio_3_in_x),
+    .gpio_4_io            (gpio_4_o),
+    .gpio_4_i             (gpio_4_out_x),
 
 
 
@@ -637,6 +651,9 @@ module gr_heep_top (
   assign uart_tx_oe_x             = 1'b1;
   assign exit_valid_oe_x          = 1'b1;
   assign gpio_2_oe_x              = 1'b1;
+  assign gpio_3_out_x             = 1'b0;
+  assign gpio_3_oe_x              = 1'b0;
+  assign gpio_4_oe_x              = 1'b1;
   assign clk_out_x                = 1'b0;
   assign clk_oe_x                 = 1'b0;
   assign exit_value_oe_x          = 1'b1;

@@ -55,6 +55,8 @@
 #define REG_PROG_INSTR 0x3
 #define REG_PROG_ADDRESS 0x4
 
+// Flag for testing the external trigger for the program execution on X-HEEP GPIO 3
+#define PROGRAM_EXECUTION_EXTERNAL_TRIGGER 1
 
 // Data types
 // ----------
@@ -349,6 +351,15 @@ int main(int argc, char *argv[])
         
         runCycles(1, dut, gen_waves, trace);
         TB_LOG(LOG_LOW, "Firmware loaded. Running app...");
+
+        if (PROGRAM_EXECUTION_EXTERNAL_TRIGGER){
+            // Writing 1 to the bit 3 of the status register. This will trigger the program execution for X-HEEP
+            // programs that poll the GPIO 3
+            readByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, 0);
+            int ExtTrigger = cw305ReadData | (1 << 3);
+            writeByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, ExtTrigger, 0);
+            runCycles(1, dut, gen_waves, trace);
+        }
         break;
 
     case BOOT_MODE_FLASH:

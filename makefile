@@ -223,7 +223,8 @@ verilator-opt: | check-firmware .verilator-check-params
 verilator-waves: $(BUILD_DIR)/sim-common/waves.fst | .check-gtkwave
 	gtkwave -a tb/misc/verilator-waves_cw305.gtkw $<
 
-vivado-fpga:
+.PHONY: vivado-fpga-cw305
+vivado-fpga-cw305:
 	$(FUSESOC) --cores-root . run --no-export --target=cw305 $(FUSESOC_FLAGS) --build polito:cw305_heep:cw305_heep ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
 ## @section Software

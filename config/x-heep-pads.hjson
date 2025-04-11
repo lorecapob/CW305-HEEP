@@ -81,6 +81,16 @@
             num_offset: 2,
             type: output
         },
+        gpio_3: {
+            num: 1,
+            num_offset: 3,
+            type: input
+        },
+        gpio_4: {
+            num: 1,
+            num_offset: 4,
+            type: output
+        },
         spi_flash_sck: {
             num: 1,
             type: bypass_inout

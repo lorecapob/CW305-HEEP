@@ -533,11 +533,11 @@ ${pad.core_v_mini_mcu_interface}
   // assign gpio_ao_in[2] = gpio_2_i;
   assign gpio_2_o      = gpio_ao_out[2];
   // assign gpio_2_oe_o   = gpio_ao_oe[2];
-  // assign gpio_ao_in[3] = gpio_3_i;
+  assign gpio_ao_in[3] = gpio_3_i;
   // assign gpio_3_o      = gpio_ao_out[3];
   // assign gpio_3_oe_o   = gpio_ao_oe[3];
   // assign gpio_ao_in[4] = gpio_4_i;
-  // assign gpio_4_o      = gpio_ao_out[4];
+  assign gpio_4_o      = gpio_ao_out[4];
   // assign gpio_4_oe_o   = gpio_ao_oe[4];
   // assign gpio_ao_in[5] = gpio_5_i;
   // assign gpio_5_o      = gpio_ao_out[5];

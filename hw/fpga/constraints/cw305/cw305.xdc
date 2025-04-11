@@ -24,13 +24,14 @@ set_property PACKAGE_PIN N13 [get_ports pll_clk1]
 
 ######## 20-Pin Connector
 
-#set_property PACKAGE_PIN T14 [get_ports tio_trigger] # UNUSED
-set_property PACKAGE_PIN T14 [get_ports IO_0]
+set_property PACKAGE_PIN T14 [get_ports tio_trigger]
+
+set_property PACKAGE_PIN T15 [get_ports IO_0]
 
 #set_property PACKAGE_PIN M16 [get_ports tio_clkout] # UNUSED
 set_property PACKAGE_PIN M16 [get_ports IO_1]
 
-set_property PACKAGE_PIN N14 [get_ports tio_clkin]
+# set_property PACKAGE_PIN N14 [get_ports tio_clkin] # UNUSED
 
 # Debug UART
 
@@ -81,10 +82,11 @@ set_property PACKAGE_PIN A5 [get_ports usb_trigger]
 
 
 create_clock -period 10.000 -name usb_clk -waveform {0.000 5.000} [get_nets usb_clk]
-create_clock -period 50.000 -name tio_clkin -waveform {0.000 5.000} [get_nets tio_clkin]
+# create_clock -period 50.000 -name tio_clkin -waveform {0.000 5.000} [get_nets tio_clkin] # UNUSED
 create_clock -period 50.000 -name pll_clk1 -waveform {0.000 5.000} [get_nets pll_clk1]
 
-set_clock_groups -asynchronous -group [get_clocks usb_clk] -group [get_clocks {tio_clkin pll_clk1}]
+# set_clock_groups -asynchronous -group [get_clocks usb_clk] -group [get_clocks {tio_clkin pll_clk1}] # UNUSED tio_clkin
+set_clock_groups -asynchronous -group [get_clocks usb_clk] -group [get_clocks {pll_clk1}]
 
 # both input clocks have same properties so there is no point in doing timing analysis for both:
 set_case_analysis 1 [get_pins U_clocks/CCLK_MUX/S]
@@ -106,12 +108,14 @@ set_output_delay -clock usb_clk 0.000 [get_ports led1]
 set_output_delay -clock usb_clk 0.000 [get_ports led2]
 set_output_delay -clock usb_clk 0.000 [get_ports led3]
 set_output_delay -clock usb_clk 0.000 [get_ports usb_data]
+set_output_delay -clock usb_clk 0.000 [get_ports tio_trigger]
 set_output_delay -clock usb_clk 0.000 [get_ports IO_0]
 set_output_delay -clock usb_clk 0.000 [get_ports IO_1]
 set_false_path -to [get_ports led1]
 set_false_path -to [get_ports led2]
 set_false_path -to [get_ports led3]
 set_false_path -to [get_ports usb_data]
+set_false_path -to [get_ports tio_trigger]
 set_false_path -to [get_ports IO_0]
 set_false_path -to [get_ports IO_1]
 

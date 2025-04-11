@@ -40,7 +40,7 @@ module tb_system_cw305 #(
     // input wire                          pll_clk2,       //PLL Clock Channel #2 (unused in this example)
 
     // 20-Pin Connector Stuff
-    // output wire                         tio_trigger,
+    output wire                         tio_trigger,
     // output wire                         tio_clkout,
     // input  wire                         tio_clkin
 
@@ -142,9 +142,9 @@ module tb_system_cw305 #(
         //.pll_clk2(pll_clk2),
 
         // 20-Pin Connector Stuff
-        // .tio_trigger(), // Unused
+        .tio_trigger(tio_trigger),
         // .tio_clkout(),  // Unused
-        .tio_clkin(usb_clk), // Connected to USB clock just for simulation purpose
+        // .tio_clkin(usb_clk), // Connected to USB clock just for simulation purpose or unused
         .IO_0(),
         .IO_1(),
         .debug_heep_uart_rx(debug_heep_uart_rx),
