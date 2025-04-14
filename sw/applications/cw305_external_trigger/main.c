@@ -17,13 +17,10 @@
 #define GPIO_INPUT_TRIGGER 3
 #define GPIO_SCOPE_TRIGGER 4
 
-/* By default, printfs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+// Set to 1 to enable printf, or 0 to disable (faster simulation)
+#define ENABLE_PRINTF 1
 
-#if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
+#if ENABLE_PRINTF
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
