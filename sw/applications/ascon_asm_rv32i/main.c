@@ -115,6 +115,8 @@ int main() {
   while (!pin_value) {
     gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
   }
+  // Set the trigger signal for the scope
+  gpio_write(GPIO_SCOPE_TRIGGER, pin_value);
 
   // Reset mcycle csr
   CSR_WRITE(CSR_REG_MCYCLE, 0);
