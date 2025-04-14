@@ -57,7 +57,9 @@ int main(int argc, char *argv[])
 
     bool pin_value = 0;
 
-    gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+    while (!pin_value) {
+        gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+    }
     PRINTF("GPIO %d is %d.\r\n", GPIO_INPUT_TRIGGER, pin_value);
     gpio_write(GPIO_SCOPE_TRIGGER, pin_value);
     PRINTF("GPIO %d is driven %d.\r\n", GPIO_SCOPE_TRIGGER, pin_value);
