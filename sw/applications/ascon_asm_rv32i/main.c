@@ -46,10 +46,15 @@
 #include <string.h>
 
 #include "csr.h"
+#include "core_v_mini_mcu.h"
+#include "gpio.h"
 #include "x-heep.h"
 
 #include "api.h"
 #include "crypto_aead.h"
+
+#define GPIO_INPUT_TRIGGER 3
+#define GPIO_SCOPE_TRIGGER 4
 
 #define KAT_SUCCESS 0
 #define KAT_CRYPTO_FAILURE -4
@@ -59,7 +64,7 @@
 #endif
 #define MAX_ASSOCIATED_DATA_LENGTH 32
 
-/* By default, printfs are disabled in order to speed-up the simulation. */
+// Set to 1 to enable printf, or 0 to disable (faster simulation)
 #define ENABLE_PRINTF 1
 
 #if ENABLE_PRINTF
@@ -77,10 +82,41 @@ void fprint_bstr(const char* label, const unsigned char* data,
 int generate_test_vectors();
 
 int main() {
+  gpio_result_t gpio_res;
+
+  gpio_cfg_t pin_cfg3 = {
+      .pin = GPIO_INPUT_TRIGGER,
+      .mode = GpioModeIn,
+      .en_input_sampling = true,
+  };
+  gpio_res = gpio_config (pin_cfg3);
+  if (gpio_res != GpioOk){
+      PRINTF("Gpio %d initialization failed!\r\n", GPIO_INPUT_TRIGGER);
+      return EXIT_FAILURE;
+  }
+
+  gpio_cfg_t pin_cfg4 = {
+      .pin = GPIO_SCOPE_TRIGGER,
+      .mode = GpioModeOutPushPull
+  };
+  gpio_res = gpio_config (pin_cfg4);
+  if (gpio_res != GpioOk){
+      PRINTF("Gpio %d initialization failed!\r\n", GPIO_SCOPE_TRIGGER);
+      return EXIT_FAILURE;
+  }
+
+  bool pin_value = 0;
   unsigned int cycles;
 
   // Enable mcycle csr (NumCycles Performance counter)
   CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+
+  // Wait for the trigger signal
+  while (!pin_value) {
+    gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+  }
+  // Set the trigger signal for the scope
+  gpio_write(GPIO_SCOPE_TRIGGER, pin_value);
 
   // Reset mcycle csr
   CSR_WRITE(CSR_REG_MCYCLE, 0);

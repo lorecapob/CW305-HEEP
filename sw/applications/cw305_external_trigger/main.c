@@ -17,13 +17,10 @@
 #define GPIO_INPUT_TRIGGER 3
 #define GPIO_SCOPE_TRIGGER 4
 
-/* By default, printfs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+// Set to 1 to enable printf, or 0 to disable (faster simulation)
+#define ENABLE_PRINTF 1
 
-#if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif PRINTF_IN_FPGA && !TARGET_SIM
+#if ENABLE_PRINTF
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
@@ -57,7 +54,9 @@ int main(int argc, char *argv[])
 
     bool pin_value = 0;
 
-    gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+    while (!pin_value) {
+        gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+    }
     PRINTF("GPIO %d is %d.\r\n", GPIO_INPUT_TRIGGER, pin_value);
     gpio_write(GPIO_SCOPE_TRIGGER, pin_value);
     PRINTF("GPIO %d is driven %d.\r\n", GPIO_SCOPE_TRIGGER, pin_value);
