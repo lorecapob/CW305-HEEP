@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -12,6 +13,16 @@
 #include "sbox.h"
 
 #define SBOX_VERSION 5
+
+// --------- X-HEEP includes and defines ---------
+#include "csr.h"
+#include "core_v_mini_mcu.h"
+#include "gpio.h"
+#include "x-heep.h"
+
+#define GPIO_INPUT_TRIGGER 3
+#define GPIO_SCOPE_TRIGGER 4
+// ----------------------------------------------
 
 static void phex(uint8_t* str);
 // static int test_encrypt_cbc(void);
@@ -34,6 +45,33 @@ int main(void)
     AES_init_sbox(SBOX_VERSION);
     AES_init_inv_sbox(SBOX_VERSION);
     int exit;
+
+    // GPIO initialization
+    gpio_result_t gpio_res;
+
+    gpio_cfg_t pin_cfg3 = {
+        .pin = GPIO_INPUT_TRIGGER,
+        .mode = GpioModeIn,
+        .en_input_sampling = true,
+    };
+    gpio_res = gpio_config (pin_cfg3);
+    if (gpio_res != GpioOk){
+        printf("Gpio %d initialization failed!\r\n", GPIO_INPUT_TRIGGER);
+        return EXIT_FAILURE;
+    }
+
+    gpio_cfg_t pin_cfg4 = {
+        .pin = GPIO_SCOPE_TRIGGER,
+        .mode = GpioModeOutPushPull
+    };
+    gpio_res = gpio_config (pin_cfg4);
+    if (gpio_res != GpioOk){
+        printf("Gpio %d initialization failed!\r\n", GPIO_SCOPE_TRIGGER);
+        return EXIT_FAILURE;
+    }
+
+    // Performance counter initialization - Enable mcycle csr (NumCycles Performance counter)
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
 #if defined(AES256)
     printf("\nTesting AES256\n\n");
@@ -165,8 +203,25 @@ static int test_encrypt_ecb(void)
 
     AES_init_ctx(&ctx, key);
 
-    // TODO: Wait for trigger here and set trigger 
+    // TODO: Wait for trigger here and set trigger
+    bool pin_value = 0;
+    unsigned int cycles;
+
+    // Wait for the trigger signal
+    while (!pin_value) {
+        gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+    }
+    // Set the trigger signal for the scope
+    gpio_write(GPIO_SCOPE_TRIGGER, pin_value);
+
+    // Reset mcycle csr
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+
+
     AES_ECB_encrypt(&ctx, in);
+
+    // Read the number of cycles
+    CSR_READ(CSR_REG_MCYCLE, &cycles);
 
     printf("ECB encrypt: ");
 
@@ -177,6 +232,8 @@ static int test_encrypt_ecb(void)
         printf("FAILURE!\n");
 	return(1);
     }
+
+    printf("Cycles: %d\n", cycles);
 }
 
 // static int test_decrypt_cbc(void)
