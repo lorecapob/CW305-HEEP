@@ -126,6 +126,7 @@ int tmp_instruction = 0;
 
 // ------ Global variables for the bridge -------------------
 int cw305ReadData = 0;
+int ExtTrigger = 0;
 // ----------------------------------------------------------
 
 // ------ Global variable for the PLL clock -----------------
@@ -352,14 +353,15 @@ int main(int argc, char *argv[])
         runCycles(1, dut, gen_waves, trace);
         TB_LOG(LOG_LOW, "Firmware loaded. Running app...");
 
-        if (PROGRAM_EXECUTION_EXTERNAL_TRIGGER){
+        #if defined(PROGRAM_EXECUTION_EXTERNAL_TRIGGER) && (PROGRAM_EXECUTION_EXTERNAL_TRIGGER == 1)
             // Writing 1 to the bit 3 of the status register. This will trigger the program execution for X-HEEP
             // programs that poll the GPIO 3
             readByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, 0);
-            int ExtTrigger = cw305ReadData | (1 << 3);
+            ExtTrigger = cw305ReadData | (1 << 3);
             writeByte(dut, gen_waves, trace, REG_BRIDGE_STATUS, ExtTrigger, 0);
             runCycles(1, dut, gen_waves, trace);
-        }
+        #endif
+
         break;
 
     case BOOT_MODE_FLASH:
@@ -447,7 +449,8 @@ void clkGen(Vtb_system_cw305 *dut)
         pll_cnt = 1;
     }
 
-    // Uncomment this to generate the PLL clock at the same frequency as the USB clock
+    // Uncomment this to generate the PLL clock at the same frequency as the USB clock.
+    // Use this to fasten the simulation, since the synchronization mechanism has already been tested.
     // dut->pll_clk1 ^= 1;
 }
 
