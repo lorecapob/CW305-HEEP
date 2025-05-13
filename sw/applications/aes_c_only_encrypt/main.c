@@ -14,8 +14,10 @@
 
 #define SBOX_VERSION 0
 
+#define ENCRYPTION_ITERATIONS 5000
+
 // --------- X-HEEP includes and defines ---------
-#define XHEEP_PRINT 1
+#define XHEEP_PRINT 0
 
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
@@ -61,6 +63,7 @@ int main(void)
 
     // Secret key
     uint8_t key[] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
+    // uint8_t key[] = { 0x3c, 0x8f, 0x26, 0x27, 0x39, 0xbf, 0xe3, 0xb1, 0xbc, 0x08, 0x26, 0x99, 0x1a, 0xd0, 0x52, 0x4d };
 #if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
     printf("Key: ");
     phex(key);
@@ -78,8 +81,9 @@ int main(void)
     struct AES_ctx ctx;
     AES_init_ctx(&ctx, key);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < ENCRYPTION_ITERATIONS; i++) {
     #if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
+        printf("Iteration %d\n", i);
         printf("Plaintext: ");
         phex(plain_text);
     #endif
