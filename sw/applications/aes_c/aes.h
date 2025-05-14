@@ -90,24 +90,30 @@ void AES_CTR_xcrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, size_t length);
 // Function for S-box selection
 /*
     AES S-boxes list:
-    - 0: sbox_rijandael
+    - 0: sbox_rijandael (default AES S-box)
     - 1: sbox_freyre_1
     - 2: sbox_freyre_2
     - 3: sbox_freyre_3
     - 4: sbox_hussain_6
     - 5: sbox_ozkaynak_1
+    - 6: sbox_azam_1
+    - 7: sbox_azam_2
+    - 8: sbox_azam_3
 */
 void AES_init_sbox(int sbox);
 
 // Function for the inverse S-box selection
 /*
     AES inverse S-boxes list:
-    - 0: inv_sbox_rijandael
+    - 0: inv_sbox_rijandael (default AES inverse S-box)
     - 1: inv_sbox_freyre_1
     - 2: inv_sbox_freyre_2
     - 3: inv_sbox_freyre_3
     - 4: inv_sbox_hussain_6
     - 5: inv_sbox_ozkaynak_1
+    - 6: inv_sbox_azam_1
+    - 7: inv_sbox_azam_2
+    - 8: inv_sbox_azam_3
 */
 void AES_init_inv_sbox(int sbox);
 
