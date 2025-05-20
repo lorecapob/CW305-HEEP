@@ -9,15 +9,13 @@
 #define CTR 0
 #define ECB 1
 
-#include "aes.h"
-#include "sbox.h"
-
-#define SBOX_VERSION 0
-
+#define MASKED 1
 #define ENCRYPTION_ITERATIONS 5000
-#define FIXED_PLAINTEXT 1 // 1 = use fixed plaintext, 0 = random plaintext. Needed for the TVLA test.
+#define FIXED_PLAINTEXT 1
 
-// --------- X-HEEP includes and defines ---------
+#include "aes.h"
+
+// ----------------------------------------------
 #define XHEEP_PRINT 0
 
 #include "core_v_mini_mcu.h"
@@ -29,7 +27,6 @@
 // ----------------------------------------------
 
 static void phex(uint8_t* str);
-
 
 int main(void)
 {
@@ -58,9 +55,7 @@ int main(void)
     }
     bool pin_value = 0;
 
-    // Choose the S-box to use
-    AES_init_sbox(SBOX_VERSION);
-    AES_init_inv_sbox(SBOX_VERSION);
+    printf("X-HEEP Masked AES ECB encryption test\n");
 
     // Secret key
     uint8_t key[] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
