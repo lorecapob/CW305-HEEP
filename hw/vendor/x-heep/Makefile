@@ -49,8 +49,7 @@ EXT_PAD_CFG ?=
 COMPILER ?= gcc
 
 # Compiler prefix options are 'riscv32-unknown-' (default)
-#COMPILER_PREFIX ?= riscv32-unknown-
-COMPILER_PREFIX ?= riscv32-corev-
+COMPILER_PREFIX ?= riscv32-unknown-
 
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc
