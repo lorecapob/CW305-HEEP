@@ -1,5 +1,8 @@
-# CW305-HEEP
-Porting of [`X-HEEP`](https://github.com/esl-epfl/x-heep) microcontroller to the [`ChipWhisperer`](https://github.com/newaetech/chipwhisperer/tree/develop) CW305 board for side-channel attack research on the RISC-V platform.
+# CW305-HEEP with loosely coupled accelerator
+In this branch the [`X-HEEP`](https://github.com/esl-epfl/x-heep) microcontroller is extedend with a loosely-coupled memory-mapped accelerator. 
+The accelerator is an HW implementation of [`Keccak`](https://github.com/vlsi-lab/keccak_integration/tree/keccak_xheep) 
+
+The microcontroller with the Keccak accelerator is then ported on the [`ChipWhisperer`](https://github.com/newaetech/chipwhisperer/tree/develop) CW305 board for side-channel attack research on the RISC-V platfo
 
 The idea is to exploit the infrastructure provided by Chipwhisperer to carry out side-channel attacks on a `RISC-V` architecture-based microcontroller in order to determine the most vulnerable areas and possibly develop hardware countermeasures. Since `X-HEEP` supports different boot modes, a hardware bridge was developed to load instructions into the RAM of the microcontroller when the JTAG mode is selected without the need for a JTAG programmer. The bridge is also responsible for interfacing `X-HEEP` with the register module used by the Chipwhisperer API, since the two blocks work with two different clock domains. A schematic of the structure is shown below:
 
