@@ -48,4 +48,14 @@ module gr_heep_peripherals (
 
   // Instantiate here the external peripherals
 
+  keccak_top keccak_top_i (
+      .clk_i,
+      .rst_ni,
+      .slave_req_i(gr_heep_slave_req_i),
+      .slave_resp_o(gr_heep_slave_resp_o),
+      .reg_req_i(gr_heep_peripheral_req_i),
+      .reg_rsp_o(gr_heep_peripheral_rsp_o),
+      .keccak_intr_o(gr_heep_peripheral_int_o)
+  );
+
 endmodule

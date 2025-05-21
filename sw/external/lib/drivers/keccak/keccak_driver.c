@@ -31,10 +31,33 @@
 // Interrupt controller variables
 plic_result_t plic_res;
 
-// Own defined ext interrupt handler
-void handler_irq_ext(uint32_t id){
-  //printf("D\n");
-}
+/* ISR that just sets a flag */
+volatile int keccak_done = 0;
+void isr_keccak_done(uint32_t id) { keccak_done = 1; }
+
+// UTILITIES
+
+#define WAIT_DMA                              \
+    while (!dma_is_ready(0))                   \
+    {                                         \
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8); \
+        if (dma_is_ready(0) == 0)              \
+        {                                     \
+            wait_for_interrupt();             \
+        }                                     \
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   \
+    }
+
+
+#define RUN_DMA                                                                               \
+    trans.flags = 0x0;                                                                        \
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY); \
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ? "Ok!" : "Error!");                \
+    res = dma_load_transaction(&trans);                                                       \
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ? "Ok!" : "Error!");                \
+    res = dma_launch(&trans);                                                                 \
+    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ? "Ok!" : "Error!");
+
 
   
 void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
@@ -54,28 +77,26 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
   // Keccak accelerator send interrupt on ext_intr line 0
   //printf("Interrupt id : %d\n", EXT_INTR_0);
   //printf("Init the PLIC...");
-  plic_res = plic_Init();
-
+  plic_res = plic_Init();                                 // initialise PLIC fabric
   if (plic_res != kPlicOk) {
+      PRINTF("Init PLIC failed\n\r;");
       return -1;
   }
   //printf("Number of clock cycles : %d\n", cycles);
   
   // Set Keccak priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = plic_irq_set_priority(EXT_INTR_0, 1);
-    if (plic_res == kPlicOk) {
-      //printf("Success\n");
-    } else {
-      //printf("Fail\n;");
-    }
+    plic_res = plic_irq_set_priority(EXT_INTR_0, 1); // Keccak done IRQ
+    if (plic_res != kPlicOk) {
+      PRINTF("Failed\n\r;");
+      return -1;
+  }
 
   // Enable the interrupt in reg 0 
   //printf("Enable Keccak interrupt...");
   plic_res = plic_irq_set_enabled(EXT_INTR_0, kPlicToggleEnabled);
-  if (plic_res == kPlicOk) {
-    //printf("Success\n");
-  } else {
-    //printf("Fail\n;");
+  if (plic_res != kPlicOk) {
+    PRINTF("Failed\n\r;");
+    return -1;
   }
 
   // Enable interrupt on processor side
@@ -85,11 +106,14 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
   const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
   CSR_SET_BITS(CSR_REG_MIE, mask);
 
+/* register the handler exactly once */
+  plic_irq_set_handler(EXT_INTR_0, isr_keccak_done);
+
   // Starting the performance counter
   CSR_WRITE(CSR_REG_MCYCLE, 0);
 
   #if USE_DMA == 1
-  //printf("Keccak : using DMA\n");
+  printf("Keccak : using DMA\n");
   // The DMA is initialized (i.e. Any current transaction is cleaned.)
   dma_init(NULL);
     
@@ -101,22 +125,20 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
    
   dma_target_t tgt_src = {
                               .ptr        = Din,
-                              .inc_du     = 1,
-                              .size_du    = DATA_SIZE,
+                              .inc_d1_du     = 1,
                               .trig       = DMA_TRIG_MEMORY,
                               .type       = DMA_DATA_TYPE_WORD,
                               };
   dma_target_t tgt_dst = {
                               .ptr        = ext_addr_4B_PTR,
-                              .inc_du     = 1,
-                              .size_du    = DATA_SIZE,
+                              .inc_d1_du     = 1,
                               .trig       = DMA_TRIG_MEMORY,
+                              .type       = DMA_DATA_TYPE_WORD
                               };
 
   dma_target_t tgt_addr = {
                               .ptr        = ext_addr_4B_PTR,
-                              .inc_du     = 1,
-                              .size_du    = DATA_SIZE,
+                              .inc_d1_du     = 1,
                               .trig       = DMA_TRIG_MEMORY,
                               };
 
@@ -124,9 +146,14 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
                               .src        = &tgt_src,
                               .dst        = &tgt_dst,
                               .src_addr   = &tgt_addr,
+                              .size_d1_du = DATA_SIZE,          /* <-- here */
+                              .src_type   = DMA_DATA_TYPE_WORD, /* keeps HAL checks happy */
+                              .dst_type   = DMA_DATA_TYPE_WORD,
                               .mode       = DMA_TRANS_MODE_SINGLE,
                               .win_du     = 0,
                               .end        = DMA_TRANS_END_INTR,
+                              .sign_ext  = 0,
+                              .dim        = DMA_DIM_CONF_1D,
                               };
   // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
 
@@ -134,24 +161,9 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
  //printf("    TESTING SINGLE MODE WITH KECCAK  ");
  //printf("\n\n=====================================\n\n");
  //
-  res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-  //printf("tran: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-  res = dma_load_transaction(&trans);
-  //printf("load: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-  res = dma_launch(&trans);
-  //printf("laun: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
-  while( ! dma_is_ready()) {
-      // disable_interrupts
-      // this does not prevent waking up the core as this is controlled by the MIP register
-      CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
-      if ( dma_is_ready() == 0 ) {
-          wait_for_interrupt();
-          //from here we wake up even if we did not jump to the ISR
-      }
-      CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-  }
-
+  RUN_DMA                                                                                                          \
+  WAIT_DMA    
 
   //printf(">> Finished transaction Din. \n");
 
@@ -165,12 +177,12 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
   #endif
   
   asm volatile ("": : : "memory");
-  *ctrl_reg = 1 << KECCAK_CTRL_CTRL_START_BIT;
+  *ctrl_reg = 1 << KECCAK_CTRL_CTRL_START_BIT; // start core
   asm volatile ("": : : "memory");
   *ctrl_reg = 0 << KECCAK_CTRL_CTRL_START_BIT;
 
   // Wait till keccak is done
-  while(plic_intr_flag==0) {
+  while(keccak_done==0) {
       wait_for_interrupt();
   }
   //printf("Keccak finished...\n");
@@ -185,24 +197,8 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
 
   // Second DMA transaction consist on reading Dout from Keccak register file
 
-  res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-  //printf("tran: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-  res = dma_load_transaction(&trans);
-  //printf("load: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-  res = dma_launch(&trans);
-  //printf("laun: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-
-  while( ! dma_is_ready()) {
-      // disable_interrupts
-      // this does not prevent waking up the core as this is controlled by the MIP register
-      CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
-      if ( dma_is_ready() == 0 ) {
-          wait_for_interrupt();
-          //from here we wake up even if we did not jump to the ISR
-      }
-      CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-  }
-
+  RUN_DMA
+  WAIT_DMA    
   //printf(">> Finished transaction Dout. \n");
      
   #else
