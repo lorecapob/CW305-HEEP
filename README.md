@@ -31,14 +31,10 @@ conda activate core-v-mini-mcu
 # Microcontroller generation and initialization
 `CW305-HEEP` generation is automated by means of a Python script. Some design parameters can be adjusted to user preferences, as described in [Read the docs - Generating the MCU](https://x-heep.readthedocs.io/en/latest/GettingStarted/GeneratingMCU.html).
 
+To generate the microcontroller:
+
 ```
 make gr-heep-gen
-```
-
-To regenerate only the microcontroller:
-
-```
-make mcu-gen
 ```
 
 # Compiling applications
