@@ -9,7 +9,6 @@
 #define CTR 0
 #define ECB 1
 
-#define MASKED 1
 #define ENCRYPTION_ITERATIONS 5000
 #define FIXED_PLAINTEXT 1
 
