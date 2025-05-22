@@ -454,6 +454,7 @@ void clkGen(Vtb_system_cw305 *dut)
         // Generate the PLL clock at the same frequency as the USB clock.
         // Use this to fasten the simulation, since the synchronization mechanism has already been tested.
         dut->pll_clk1 ^= 1;
+    #endif
 }
 
 void rstDut(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace)

@@ -41,9 +41,17 @@
     #define PRINTF(...)
 #endif
 
-#ifndef USE_DMA
-#define USE_DMA 1
-#endif
+int8_t cycles = 0;
+
+// INTERRUPT HANDLERS
+void dma_intr_handler_trans_done(uint8_t channel)
+{
+    cycles++;
+}
+
+//#ifndef USE_DMA
+//#define USE_DMA 1
+//#endif
 
 // Interrupt controller variables
 plic_result_t plic_res;
@@ -174,8 +182,8 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
                               .dst_type   = DMA_DATA_TYPE_WORD,
                               .mode       = DMA_TRANS_MODE_SINGLE,
                               .win_du     = 0,
-                              .end        = DMA_TRANS_END_INTR,
                               .sign_ext  = 0,
+                              .end        = DMA_TRANS_END_INTR,
                               .dim        = DMA_DIM_CONF_1D,
                               };
   // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
@@ -190,7 +198,7 @@ printf("\n\n=====================================\n\n");
   printf(">> Finished transaction Din. \n");
 
   #else
-  printf("Keccak : not using DMA\n");
+  //printf("Keccak : not using DMA\n");
   for (int i = 0; i<50; i++)
   {
      Din_reg_start[i] = Din[i];
