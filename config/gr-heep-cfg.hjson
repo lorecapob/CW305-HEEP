@@ -19,7 +19,7 @@
     // Slaves memory map
     ext_xbar_nmasters: 1 // Added for the Bridge2Xheep
     ext_xbar_slaves: {
-        Keccak_slave_port: {
+        Keccak: {
             offset:    "0x00000000",
             length:    "0x00010000",
         }
@@ -31,7 +31,7 @@
 
     // External peripherals
     ext_periph: {
-        Keccak_peripheral_port: {
+        Keccak: {
             offset: "0x0000000",
             length: "0x0001000",
         },

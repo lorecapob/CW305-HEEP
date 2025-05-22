@@ -52,19 +52,15 @@ package gr_heep_pkg;
 
   // Memory map
   // ----------
-  // KeccakSlavePort
-  localparam int unsigned KeccakSlavePortIdx = 32'd0;
-  localparam logic [31:0] KeccakSlavePortStartAddr = EXT_SLAVE_START_ADDRESS + 32'h00000000;
-  localparam logic [31:0] KeccakSlavePortSize = 32'h00010000;
-  localparam logic [31:0] KeccakSlavePortEndAddr = KeccakSlavePortStartAddr + 32'h00010000;
+  // Keccak
+  localparam int unsigned KeccakIdx = 32'd0;
+  localparam logic [31:0] KeccakStartAddr = EXT_SLAVE_START_ADDRESS + 32'h00000000;
+  localparam logic [31:0] KeccakSize = 32'h00010000;
+  localparam logic [31:0] KeccakEndAddr = KeccakStartAddr + 32'h00010000;
 
   // External slaves address map
   localparam addr_map_rule_t [ExtXbarNSlave-1:0] ExtSlaveAddrRules = '{
-      '{
-          idx: KeccakSlavePortIdx,
-          start_addr: KeccakSlavePortStartAddr,
-          end_addr: KeccakSlavePortEndAddr
-      }
+      '{idx: KeccakIdx, start_addr: KeccakStartAddr, end_addr: KeccakEndAddr}
   };
 
   localparam int unsigned ExtSlaveDefaultIdx = 32'd0;
@@ -85,19 +81,15 @@ package gr_heep_pkg;
 
   // Memory map
   // ----------
-  // KeccakPeripheralPort
-  localparam int unsigned KeccakPeripheralPortPeriphIdx = 32'd0;
-  localparam logic [31:0] KeccakPeripheralPortPeriphStartAddr = EXT_PERIPHERAL_START_ADDRESS + 32'h0000000;
-  localparam logic [31:0] KeccakPeripheralPortPeriphSize = 32'h0001000;
-  localparam logic [31:0] KeccakPeripheralPortPeriphEndAddr = KeccakPeripheralPortStartAddr + 32'h0001000;
+  // Keccak
+  localparam int unsigned KeccakPeriphIdx = 32'd0;
+  localparam logic [31:0] KeccakPeriphStartAddr = EXT_PERIPHERAL_START_ADDRESS + 32'h0000000;
+  localparam logic [31:0] KeccakPeriphSize = 32'h0001000;
+  localparam logic [31:0] KeccakPeriphEndAddr = KeccakStartAddr + 32'h0001000;
 
   // External peripherals address map
   localparam addr_map_rule_t [ExtPeriphNSlave-1:0] ExtPeriphAddrRules = '{
-      '{
-          idx: KeccakPeripheralPortPeriphIdx,
-          start_addr: KeccakPeripheralPortPeriphStartAddr,
-          end_addr: KeccakPeripheralPortPeriphEndAddr
-      }
+      '{idx: KeccakPeriphIdx, start_addr: KeccakPeriphStartAddr, end_addr: KeccakPeriphEndAddr}
   };
 
   localparam int unsigned ExtPeriphDefaultIdx = 32'd0;

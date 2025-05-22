@@ -3,15 +3,20 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include "x-heep.h"
+
 #include "keccak_x_heep.h"
 #include "core_v_mini_mcu.h"
 #include "keccak_driver.h"
 #include "keccak_ctrl_auto.h"
 #include "keccak_data_auto.h"
+#include "x-heep.h"
+#include <limits.h> //todo: remove
 
 #include "stats.h"
 
 // To manage interrupt
+#include "handler.h"
 #include "csr.h"
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
@@ -24,6 +29,18 @@
 #define KECCAK_BUSY 0
 #define DATA_SIZE 50
 
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
+
 #ifndef USE_DMA
 #define USE_DMA 1
 #endif
@@ -34,6 +51,12 @@ plic_result_t plic_res;
 /* ISR that just sets a flag */
 volatile int keccak_done = 0;
 void isr_keccak_done(uint32_t id) { keccak_done = 1; }
+
+// Own defined ext interrupt handler
+void handler_irq_ext(uint32_t id){
+  keccak_done = 1;
+  //printf("D\n");
+}
 
 // UTILITIES
 
@@ -107,7 +130,7 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
   CSR_SET_BITS(CSR_REG_MIE, mask);
 
 /* register the handler exactly once */
-  plic_irq_set_handler(EXT_INTR_0, isr_keccak_done);
+//  plic_irq_set_handler(EXT_INTR_0, isr_keccak_done);
 
   // Starting the performance counter
   CSR_WRITE(CSR_REG_MCYCLE, 0);
@@ -157,18 +180,17 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
                               };
   // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
 
- //printf("\n\n=====================================\n\n");
- //printf("    TESTING SINGLE MODE WITH KECCAK  ");
- //printf("\n\n=====================================\n\n");
- //
+printf("\n\n=====================================\n\n");
+printf("    TESTING SINGLE MODE WITH KECCAK  ");
+printf("\n\n=====================================\n\n");
 
   RUN_DMA                                                                                                          \
   WAIT_DMA    
 
-  //printf(">> Finished transaction Din. \n");
+  printf(">> Finished transaction Din. \n");
 
   #else
-  //printf("Keccak : not using DMA\n");
+  printf("Keccak : not using DMA\n");
   for (int i = 0; i<50; i++)
   {
      Din_reg_start[i] = Din[i];
@@ -181,11 +203,12 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
   asm volatile ("": : : "memory");
   *ctrl_reg = 0 << KECCAK_CTRL_CTRL_START_BIT;
 
+  printf("Keccak started...\n");
   // Wait till keccak is done
   while(keccak_done==0) {
       wait_for_interrupt();
   }
-  //printf("Keccak finished...\n");
+  printf("Keccak finished...\n");
 	 
   #if USE_DMA == 1
 
@@ -199,19 +222,19 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
 
   RUN_DMA
   WAIT_DMA    
-  //printf(">> Finished transaction Dout. \n");
+  printf(">> Finished transaction Dout. \n");
      
   #else
   for (volatile int i = 0; i<DATA_SIZE; i++){
      Dout[i] = Dout_reg_start[i];
-     //printf("Dout[%d]=%04X\n", i, Dout[i]);
+     printf("Dout[%d]=%04X\n", i, Dout[i]);
   }
 
   #endif
 
   // stop the HW counter used for monitoring
   CSR_READ(CSR_REG_MCYCLE, &cycles);
-  //printf("Number of clock cycles : %d\n", cycles);
+  printf("Number of clock cycles : %d\n", cycles);
   //printf("Number of instructions : %d\nNumber of clock cycles: %d\nCPI: %f%f\n",instr_cnt, cycles_cnt, (float) instr_cnt/cycles_cnt);
   
 }
