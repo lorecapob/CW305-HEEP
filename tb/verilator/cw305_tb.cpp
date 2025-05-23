@@ -442,16 +442,17 @@ void clkGen(Vtb_system_cw305 *dut)
     dut->clk_i ^= 1;
 
     // Generate the PLL clock. This way the PLL clock is generated at 1/8 of the USB (clk_i) clock frequency.
-    pll_cnt++;
-    // Generate the PLL clock
-    if (pll_cnt == 15){
-        dut->pll_clk1 ^= 1;
-        pll_cnt = 1;
-    }
+    // Use this to test the synchronization mechanism.
+    // pll_cnt++;
+    // // Generate the PLL clock
+    // if (pll_cnt == 15){
+    //     dut->pll_clk1 ^= 1;
+    //     pll_cnt = 1;
+    // }
 
     // Uncomment this to generate the PLL clock at the same frequency as the USB clock.
     // Use this to fasten the simulation, since the synchronization mechanism has already been tested.
-    // dut->pll_clk1 ^= 1;
+    dut->pll_clk1 ^= 1;
 }
 
 void rstDut(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace)

@@ -51,6 +51,16 @@ filesets:
     - hw/pad-ring/pad_ring.sv
     file_type: systemVerilogSource
 
+  # The fileset containing the top-level HDL files to be formatted and linted
+  rtl-format:
+    depend:
+      - polito:gr_heep:packages
+    files:
+    - hw/top/gr_heep_top.sv
+    - hw/pad-ring/pad_ring.sv
+    file_type: systemVerilogSource
+
+
   # X-HEEP RTL (separated to avoid Verible errors)
   rtl-x-heep:
     depend:
@@ -185,6 +195,43 @@ targets:
         #board_part: tul.com.tw:pynq-z2:part0:1.0
         #board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_pynq_z2_board_files]
     toplevel: [cw305_top]
+
+    # Format with Verible
+  format:
+    filesets:
+    - rtl-format
+    toplevel: gr_heep_top
+    description: Format source files using verible-verilog-format
+    default_tool: veribleformat
+    tools:
+      veribleformat:
+        verible_format_args:
+        - '--assignment_statement_alignment=align'
+        - '--case_items_alignment=align'
+        - '--formal_parameters_indentation=indent'
+        - '--named_parameter_alignment=align'
+        - '--named_parameter_indentation=indent'
+        - '--named_port_alignment=align'
+        - '--named_port_indentation=indent'
+        - '--port_declarations_alignment=align'
+        - '--port_declarations_indentation=indent'
+        - '--assignment_statement_alignment=align'
+        - '--module_net_variable_alignment=align'
+        - '--inplace'
+
+  # Static analysis
+  lint:
+    filesets:
+    - rtl-format
+    toplevel: gr_heep_top
+    description: Perform static analysis using Verible
+    default_tool: veriblelint
+    tools:
+      veriblelint:
+        ruleset: default
+        rules:
+        - 'line-length=length:200'
+
 
 # Parameters
 # Inherited from the GR-HEEP core?
