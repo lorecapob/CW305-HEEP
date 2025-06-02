@@ -43,25 +43,23 @@ package gr_heep_pkg;
   localparam int unsigned ExtXbarNSlave = 32'd1;
   localparam int unsigned ExtXbarNMasterRnd = ExtXbarNMaster > 0 ? ExtXbarNMaster : 32'd1;
   localparam int unsigned ExtXbarNSlaveRnd = ExtXbarNSlave > 0 ? ExtXbarNSlave : 32'd1;
-  localparam int unsigned LogExtXbarNMaster = ExtXbarNMaster > 32'd1 ? $clog2(
-      ExtXbarNMaster
-  ) : 32'd1;
+  localparam int unsigned LogExtXbarNMaster = ExtXbarNMaster > 32'd1 ? $clog2(ExtXbarNMaster) : 32'd1;
   localparam int unsigned LogExtXbarNSlave = ExtXbarNSlave > 32'd1 ? $clog2(ExtXbarNSlave) : 32'd1;
 
 
 
-  // Memory map
-  // ----------
-  // Keccak
-  localparam int unsigned KeccakIdx = 32'd0;
-  localparam logic [31:0] KeccakStartAddr = EXT_SLAVE_START_ADDRESS + 32'h00000000;
-  localparam logic [31:0] KeccakSize = 32'h00010000;
-  localparam logic [31:0] KeccakEndAddr = KeccakStartAddr + 32'h00010000;
+    // Memory map
+    // ----------
+    // Keccak
+    localparam int unsigned KeccakIdx = 32'd0;
+    localparam logic [31:0] KeccakStartAddr = EXT_SLAVE_START_ADDRESS + 32'h00000000;
+    localparam logic [31:0] KeccakSize = 32'h00010000;
+    localparam logic [31:0] KeccakEndAddr = KeccakStartAddr + 32'h00010000;
 
-  // External slaves address map
-  localparam addr_map_rule_t [ExtXbarNSlave-1:0] ExtSlaveAddrRules = '{
+    // External slaves address map
+    localparam addr_map_rule_t [ExtXbarNSlave-1:0] ExtSlaveAddrRules = '{
       '{idx: KeccakIdx, start_addr: KeccakStartAddr, end_addr: KeccakEndAddr}
-  };
+    };
 
   localparam int unsigned ExtSlaveDefaultIdx = 32'd0;
 
@@ -72,25 +70,23 @@ package gr_heep_pkg;
 
   // Number of external peripherals
   localparam int unsigned ExtPeriphNSlave = 32'd1;
-  localparam int unsigned LogExtPeriphNSlave = (ExtPeriphNSlave > 32'd1) ? $clog2(
-      ExtPeriphNSlave
-  ) : 32'd1;
+  localparam int unsigned LogExtPeriphNSlave = (ExtPeriphNSlave > 32'd1) ? $clog2(ExtPeriphNSlave) : 32'd1;
   localparam int unsigned ExtPeriphNSlaveRnd = (ExtPeriphNSlave > 32'd1) ? ExtPeriphNSlave : 32'd1;
 
 
 
-  // Memory map
-  // ----------
-  // Keccak
-  localparam int unsigned KeccakPeriphIdx = 32'd0;
-  localparam logic [31:0] KeccakPeriphStartAddr = EXT_PERIPHERAL_START_ADDRESS + 32'h0000000;
-  localparam logic [31:0] KeccakPeriphSize = 32'h0001000;
-  localparam logic [31:0] KeccakPeriphEndAddr = KeccakStartAddr + 32'h0001000;
+    // Memory map
+    // ----------
+    // Keccak
+    localparam int unsigned KeccakPeriphIdx = 32'd0;
+    localparam logic [31:0] KeccakPeriphStartAddr = EXT_PERIPHERAL_START_ADDRESS + 32'h0000000;
+    localparam logic [31:0] KeccakPeriphSize = 32'h0001000;
+    localparam logic [31:0] KeccakPeriphEndAddr = KeccakStartAddr + 32'h0001000;
 
-  // External peripherals address map
-  localparam addr_map_rule_t [ExtPeriphNSlave-1:0] ExtPeriphAddrRules = '{
-      '{idx: KeccakPeriphIdx, start_addr: KeccakPeriphStartAddr, end_addr: KeccakPeriphEndAddr}
-  };
+        // External peripherals address map
+        localparam addr_map_rule_t [ExtPeriphNSlave-1:0] ExtPeriphAddrRules = '{
+            '{idx: KeccakPeriphIdx, start_addr: KeccakPeriphStartAddr, end_addr: KeccakPeriphEndAddr}
+        };
 
   localparam int unsigned ExtPeriphDefaultIdx = 32'd0;
 
