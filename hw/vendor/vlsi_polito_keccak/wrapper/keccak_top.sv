@@ -92,12 +92,12 @@ module keccak_top
    wire logic [1599:0] din_keccak, dout_keccak;
    assign din_keccak = reg_file_to_ip_data;
 			       			        	
-	keccak i_keccak (
+	keccak_f i_keccak (
 		.clk(clk_i),
 		.rst_n(rst_ni),
-		.start(reg_file_to_ip_ctrl),
-		.din(din_keccak),
-		.dout(dout_keccak),
+		.start_i(reg_file_to_ip_ctrl),
+		.Din(din_keccak),
+		.Dout(dout_keccak),
 		.status_d(ip_to_reg_file_ctrl.status.d),
 		.status_de(ip_to_reg_file_ctrl.status.de),
 		.keccak_intr(keccak_intr_o)

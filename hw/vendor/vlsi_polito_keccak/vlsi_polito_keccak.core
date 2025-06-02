@@ -8,7 +8,7 @@ name: "vlsi:polito:keccak"
 description: "keccak HDL"
 
 filesets:
-
+    
   files_rtl_sv:
     depend:
     - x-heep::packages
@@ -18,24 +18,18 @@ filesets:
     - hw/rtl/gen_sv/keccak_data_reg_top.sv
     - hw/rtl/gen_sv/keccak_ctrl_reg_pkg.sv
     - hw/rtl/gen_sv/keccak_ctrl_reg_top.sv
+    - hw/rtl/test_sv/pkg_keccak.sv
+    - hw/rtl/test_sv/keccak_round_constants_gen.sv
+    - hw/rtl/test_sv/keccak_round.sv
+    - hw/rtl/test_sv/keccak_dp.sv
     - hw/rtl/keccak_cu.sv
+    - hw/rtl/test_sv/keccak_f.sv
     - wrapper/keccak_top.sv
     file_type: systemVerilogSource
 
-  files_rtl_vhdl:
-    depend:
-    - x-heep::packages
-    - pulp-platform.org::common_cells
-    files:
-    - hw/rtl/keccak_globals.vhd
-    - hw/rtl/keccak_round_constants_gen.vhd
-    - hw/rtl/keccak_round.vhd
-    - hw/rtl/keccak_datapath.vhd
-    - hw/rtl/keccak.vhd
-    file_type: vhdlSource    
-    
 targets:
   default:
     filesets:
-    - files_rtl_sv
-    - files_rtl_vhdl
+    - 
+    
+
