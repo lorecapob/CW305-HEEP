@@ -93,6 +93,7 @@ filesets:
     - tb/misc/tb-cw305-waivers.vlt
     - hw/misc/gr-heep-waivers.vlt
     - hw/misc/heep-waivers.vlt
+    - hw/misc/keccak-waivers.vlt
     file_type: vlt
 
   # RTL testbench system vendored modules

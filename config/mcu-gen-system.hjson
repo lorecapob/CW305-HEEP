@@ -12,7 +12,7 @@
     bus_type: "NtoM",
     ram_banks: {
         code_and_data: {
-            num: 4
+            num: 2
             sizes: [32]
         },
         data_interleaved: {
@@ -33,7 +33,7 @@
         },
         {
             name: data
-            start: 0x00000E801
+            start: 0x00000E800
         }
     ]
 }
