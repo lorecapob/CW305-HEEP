@@ -78,6 +78,7 @@ QUESTA_SIM_DIR				= $(FUSESOC_BUILD_DIR)/sim-modelsim
 
 # Application spacific makefile
 APP_MAKE := $(wildcard sw/applications/$(PROJECT)/*akefile)
+APP_PARAMS ?= 
 
 # Custom preprocessor definitions
 CDEFS ?=
@@ -142,7 +143,7 @@ gr-heep-gen-force:
 ## Generate gr-HEEP files
 .PHONY: gr-heep-gen
 gr-heep-gen: $(GR_HEEP_GEN_LOCK)
-$(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK)
+$(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK) 
 	@echo "### Generating gr-HEEP top and pad rings..."
 	python3 $(XHEEP_DIR)/util/mcu_gen.py $(MCU_GEN_OPTS) \
 		--outdir $(ROOT_DIR)/hw/top/ \

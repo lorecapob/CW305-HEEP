@@ -9,7 +9,7 @@
 extern "C" {
 #endif  // __cplusplus
 
-  //#include "core_v_mini_mcu.h"
+#include "gr_heep.h"
 
 #define KECCAK_DIN_START_ADDR KECCAK_START_ADDRESS
 #define KECCAK_DOUT_START_ADDR (KECCAK_START_ADDRESS+0x0000000c8)

@@ -19,6 +19,7 @@ filesets:
     - openhwgroup.org:systems:core-v-mini-mcu
     - x-heep::packages
     - polito:gr_heep:packages
+    - vlsi:polito:keccak
     files:
     - peripherals/gr_heep_peripherals.sv
     file_type: systemVerilogSource

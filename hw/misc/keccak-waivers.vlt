@@ -9,6 +9,6 @@ lint_off -rule DECLFILENAME -file "*vlsi_polito_keccak/hw/rtl/gen_sv/keccak_data
 lint_off -rule DECLFILENAME -file "*vlsi_polito_keccak/hw/rtl/gen_sv/keccak_ctrl_reg_top.sv" -match "Filename 'keccak_ctrl_reg_top' does not match MODULE name: 'keccak_ctrl_reg_top_intf'"
 lint_off -rule WIDTH -file "*vlsi_polito_keccak/hw/rtl/gen_sv/keccak_ctrl_reg_top.sv" -match "Operator ASSIGNW expects 3 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits."
 // Parameters defined but not used. Can be used if implemented the all SHA-3 and not only the permutation
-lint_off -rule UNUSED -file "*vlsi_polito_keccak/hw/rtl/test_sv/pkg_keccak.sv" -match "Parameter is not used: 'IN_BUF_SIZE'"
-lint_off -rule UNUSED -file "*vlsi_polito_keccak/hw/rtl/test_sv/pkg_keccak.sv" -match "Parameter is not used: 'OUT_BUF_SIZE'"
+lint_off -rule UNUSED -file "*vlsi_polito_keccak/hw/rtl/pkg_keccak.sv" -match "Parameter is not used: 'IN_BUF_SIZE'"
+lint_off -rule UNUSED -file "*vlsi_polito_keccak/hw/rtl/pkg_keccak.sv" -match "Parameter is not used: 'OUT_BUF_SIZE'"
 

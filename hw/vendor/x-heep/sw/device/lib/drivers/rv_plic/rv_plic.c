@@ -138,7 +138,7 @@ handler_funct_t handlers[QTY_INTR];
 /**                                                                        **/
 /****************************************************************************/
 
-void handler_irq_external(void)
+__attribute__((weak)) void handler_irq_external(void)
 {
   uint32_t int_id = NULL_INTR;
   plic_result_t res = plic_irq_claim(&int_id);

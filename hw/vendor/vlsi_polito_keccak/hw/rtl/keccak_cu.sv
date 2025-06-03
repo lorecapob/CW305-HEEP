@@ -28,8 +28,8 @@ module keccak_cu (
    reg [1:0] 			       State, State_next;
 
    // State reg
-   always_ff @(posedge clk_i) begin
-      if ( !rst_ni) begin
+   always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
 	 State <= wait_start;
 	 counter <= 0;
       end else begin 
@@ -46,40 +46,40 @@ module keccak_cu (
    always_comb begin
       case (State)
 	wait_start : begin
-	   keccak_intr <= 0;
+	   keccak_intr = 0;
 	   if (start_i && ready_dp_i) begin
-	      start_dp_o <= 1;
-	      State_next <= do_permutation;
+	      start_dp_o = 1;
+	      State_next = do_permutation;
 	   end else begin
-	      start_dp_o <= 0;
-	      State_next <= wait_start;	      
+	      start_dp_o = 0;
+	      State_next = wait_start;	      
 	   end
 	end
 	do_permutation : begin
-	   start_dp_o <= 0;
-	   status_d <= 0;
-	   status_de <=0;
-	   //keccak_intr <= 0;
+	   start_dp_o = 0;
+	   status_d = 0;
+	   status_de =0;
+	   //keccak_intr = 0;
 	   if (counter == 24) begin
-	      //din_keccak_o <= 0;
-	      State_next <= permutation_finished;
+	      //din_keccak_o = 0;
+	      State_next = permutation_finished;
 	   end else begin
-	      State_next <= do_permutation;
+	      State_next = do_permutation;
 	   end
         end
 	permutation_finished : begin
-	   start_dp_o <= 0;
-	   status_d <= 1;
-	   status_de <=1;
-	   keccak_intr <= 1;
-	   State_next <= wait_start;
+	   start_dp_o = 0;
+	   status_d = 1;
+	   status_de =1;
+	   keccak_intr = 1;
+	   State_next = wait_start;
         end 
 	default : begin
-	   start_dp_o <= 0;
-	   status_d <= 0;
-	   status_de <=0;
-	   //keccak_intr <= 0;
-	   State_next <= wait_start;
+	   start_dp_o = 0;
+	   status_d = 0;
+	   status_de =0;
+	   //keccak_intr = 0;
+	   State_next = wait_start;
 	end
    endcase
    end // always_comb @
