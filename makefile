@@ -194,6 +194,7 @@ verilator-sim: | check-firmware verilator-build .verilator-check-params
 		--trace=true \
 		$(FUSESOC_ARGS)
 	cat $(FUSESOC_BUILD_DIR)/sim-verilator/uart.log
+	mv $(FUSESOC_BUILD_DIR)/sim-verilator/waves.fst $(BUILD_DIR)/sim-common/waves.fst
 
 ## Launch simulation
 .PHONY: verilator-run
@@ -206,6 +207,7 @@ verilator-run: | check-firmware .verilator-check-params
 		--trace=true \
 		$(FUSESOC_ARGS)
 	cat $(FUSESOC_BUILD_DIR)/sim-verilator/uart.log
+	mv $(FUSESOC_BUILD_DIR)/sim-verilator/waves.fst $(BUILD_DIR)/sim-common/waves.fst
 
 ## Launch simulation without waveform dumping
 .PHONY: verilator-opt
@@ -221,8 +223,8 @@ verilator-opt: | check-firmware .verilator-check-params
 
 # Open dumped waveform with GTKWave
 .PHONY: verilator-waves
-verilator-waves: $(BUILD_DIR)/sim-common/waves.fst | .check-gtkwave
-	gtkwave -a tb/misc/verilator-waves_cw305.gtkw $<
+verilator-waves: | .check-gtkwave
+	gtkwave -a tb/misc/verilator-waves_cw305.gtkw $(BUILD_DIR)/sim-common/waves.fst 
 
 .PHONY: vivado-fpga-cw305
 vivado-fpga-cw305:

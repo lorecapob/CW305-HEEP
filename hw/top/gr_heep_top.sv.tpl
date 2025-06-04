@@ -276,6 +276,8 @@ ${pad.core_v_mini_mcu_bonding}
   gr_heep_peripherals u_gr_heep_peripherals (
     .clk_i (clk_i),
     .rst_ni (rst_nin_sync),
+    .gr_heep_master_req_o(heep_slave_req[0]),
+    .gr_heep_master_resp_i(heep_slave_resp[0]),
     .gr_heep_slave_req_i(ext_slave_req),
     .gr_heep_slave_resp_o(ext_slave_resp),
     .gr_heep_peripheral_req_i(gr_heep_peripheral_req),

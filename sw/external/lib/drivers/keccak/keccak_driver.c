@@ -58,10 +58,10 @@ plic_result_t plic_res;
 /* ISR that just sets a flag */
 volatile int keccak_done = 0;
 // Own defined ext interrupt handler
-void handler_irq_external(){
-  keccak_done = 1;
-  //printf("D\n");
-}
+//void handler_irq_external(){
+//  keccak_done = 1;
+//  //printf("D\n");
+//}
 
 // UTILITIES
 
@@ -100,7 +100,6 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
   // Performance regs variables
   unsigned int instr, cycles, ldstall, jrstall, imstall;
   
-  printf("!");
   uint32_t* ext_addr_4B_PTR = (uint32_t*)KECCAK_DIN_START_ADDR;
  
   // Keccak accelerator send interrupt on ext_intr line 0
@@ -112,14 +111,14 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
       return -1;
   }
   //printf("Number of clock cycles : %d\n", cycles);
-  printf("!");
+  
   // Set Keccak priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = plic_irq_set_priority(EXT_INTR_0, 1); // Keccak done IRQ
     if (plic_res != kPlicOk) {
       PRINTF("Failed\n\r;");
       return -1;
   }
-  printf("!");
+
   // Enable the interrupt in reg 0 
   //printf("Enable Keccak interrupt...");
   plic_res = plic_irq_set_enabled(EXT_INTR_0, kPlicToggleEnabled);
@@ -203,7 +202,7 @@ printf("\n\n=====================================\n\n");
   }
 
   #endif
-  printf("!");
+  
   asm volatile ("": : : "memory");
   *ctrl_reg = 1 << KECCAK_CTRL_CTRL_START_BIT; // start core
   asm volatile ("": : : "memory");

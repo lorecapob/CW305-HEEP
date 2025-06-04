@@ -21,7 +21,9 @@ lint_off -rule UNUSED -file "*gr_heep_top.sv" -match "Signal is not*used: '*_req
 lint_off -rule UNUSED -file "*gr_heep_top.sv" -match "Signal is not*used: '*_rsp'"
 lint_off -rule UNUSED -file "*gr_heep_top.sv" -match "Signal is not*used: '*_resp'"
 lint_off -rule UNUSED -file "*gr_heep_top.sv" -match "Signal is not*used: '*in_x'"
-lint_off -rule UNUSED -file "*gr_heep_top.sv" -match "Bits of signal are not used: 'external_subsystem_powergate_switch_n'[1]"
+lint_off -rule UNUSED -file "*/hw/peripherals/gr_heep_peripherals.sv" -match "Signal is not used: 'gr_heep_master_resp_i'"
+
+lint_off -rule UNUSED -file "*gr_heep_peripherals.sv" -match "Bits of signal are not used: 'external_subsystem_powergate_switch_n'[1]"
 
 lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Signal is not driven: '*_powergate_*'"
 lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Signal is not driven: '*out_x'"
@@ -29,3 +31,6 @@ lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Signal is not driven: '*
 lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Signal is not driven: '*_rsp'"
 lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Signal is not driven: '*_resp'"
 lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Bits of signal are not driven: 'external_subsystem_powergate_switch_ack_n'[1]"
+
+lint_off -rule UNDRIVEN -file "*/hw/peripherals/gr_heep_peripherals.sv" -match "Signal is not driven: 'gr_heep_master_req_o'"
+

@@ -17,7 +17,7 @@
     },
 
     // Slaves memory map
-    ext_xbar_nmasters: 1 // Added for the Bridge2Xheep
+    ext_xbar_nmasters: 1 
     ext_xbar_slaves: {
         Keccak: {
             offset:    "0x00000000",
