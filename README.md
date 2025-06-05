@@ -101,7 +101,7 @@ Synthesis can be performed automatically using `Vivado`:
 make vivado-fpga
 ```
 
-The synthesis also supports `ILA` (Integrated Logic Analizer). For example purposes, an `ILA` instance is placed between the `bridge` and `X-HEEP` during the synthesis by default. It can be used to monitor the communication between these two modules.
+The synthesis also supports `ILA` (Integrated Logic Analizer).
 
 The generated bitsream can be found at `build/polito_cw305_heep_cw305_heep_0.0.1/cw305-vivado/polito_cw305_heep_cw305_heep_0.0.1.runs/impl_1/cw305_top.bit`
 
