@@ -8,19 +8,17 @@
 // Description: GR-heep top-level module
 
 module gr_heep_top (
-  // Added to connect the bridge2Xheep
 
-  // Request section for the OBI interface
-  input logic        req_i,
-  input logic        we_i,
-  input logic [ 3:0] be_i,
-  input logic [31:0] addr_i,
-  input logic [31:0] wdata_i,
-
-  // Response section for the OBI interface
-  output logic        gnt_o,
-  output logic        rvalid_o,
-  output logic [31:0] rdata_o,
+  // Bridge interface
+  input  logic        bridge_instr_valid_i,
+  input  logic        bridge_addr_valid_i,
+  output logic        bridge_rst_new_address_valid_o,
+  output logic        bridge_rst_instr_valid_o,
+  output logic        bridge_busy_o,
+  input  logic [31:0] bridge_instruction_i,
+  input  logic [31:0] bridge_new_section_address_i,
+  output logic        bridge_OBI_rvalid_o,
+  output logic [31:0] bridge_OBI_rdata_o,
 
   // X-HEEP interface
   inout wire rst_ni,
@@ -108,6 +106,10 @@ module gr_heep_top (
   obi_req_t  [            ExtXbarNmasterRnd-1:0]      gr_heep_master_req;
   obi_resp_t [            ExtXbarNmasterRnd-1:0]      gr_heep_master_resp;
 
+  // External slave ports
+  obi_req_t  [             ExtXbarNSlaveRnd-1:0]      ext_slave_req;
+  obi_resp_t [             ExtXbarNSlaveRnd-1:0]      ext_slave_resp;
+
   // X-HEEP external peripheral master ports
   reg_req_t                                           heep_peripheral_req;
   reg_rsp_t                                           heep_peripheral_rsp;
@@ -125,6 +127,10 @@ module gr_heep_top (
   reg_req_t  [                     AoSPCNum-1:0]      ext_ao_peripheral_req;
   reg_rsp_t  [                     AoSPCNum-1:0]      ext_ao_peripheral_resp;
 
+  // External peripherals select
+  logic      [           LogExtPeriphNSlave-1:0]      gr_heep_periph_select;
+  reg_req_t  [           ExtPeriphNSlaveRnd-1:0]      gr_heep_peripheral_req;
+  reg_rsp_t  [           ExtPeriphNSlaveRnd-1:0]      gr_heep_peripheral_rsp;
 
   // Pad controller
   reg_req_t                                           pad_req;
@@ -534,31 +540,121 @@ module gr_heep_top (
 
   // External peripherals
   // --------------------
+  gr_heep_peripherals u_gr_heep_peripherals (
+    .clk_i                         (clk_i),
+    .rst_ni                        (rst_nin_sync),
+    // ------------ Bridge signals --------------
+    .bridge_instr_valid_i          (bridge_instr_valid_i),
+    .bridge_addr_valid_i           (bridge_addr_valid_i),
+    .bridge_rst_new_address_valid_o(bridge_rst_new_address_valid_o),
+    .bridge_rst_instr_valid_o      (bridge_rst_instr_valid_o),
+    .bridge_busy_o                 (bridge_busy_o),
+    .bridge_instruction_i          (bridge_instruction_i),
+    .bridge_new_section_address_i  (bridge_new_section_address_i),
+    .bridge_OBI_rvalid_o           (bridge_OBI_rvalid_o),
+    .bridge_OBI_rdata_o            (bridge_OBI_rdata_o),
+    // -----------------------------------------
+    .gr_heep_master_req_o          (gr_heep_master_req),
+    .gr_heep_master_resp_i         (gr_heep_master_resp)
+    // .gr_heep_slave_req_i(ext_slave_req), // TODO: add if there are slaves connected to the external bus
+    // .gr_heep_slave_resp_o(ext_slave_resp),
+    // .gr_heep_peripheral_req_i(gr_heep_peripheral_req),
+    // .gr_heep_peripheral_rsp_o(gr_heep_peripheral_rsp),
+    // .gr_heep_peripheral_int_o(ext_int_vector[0])
+  );
 
+  // Unused signals
+  // --------------
+  assign ext_int_vector[11:1] = '0;
+
+  localparam int unsigned IdxWidth = cf_math_pkg::idx_width(ExtXbarNSlave);
+
+  // External BUS
+  // ------------
+  ext_bus #(
+    .EXT_XBAR_NMASTER(ExtXbarNMasterRnd),
+    .EXT_XBAR_NSLAVE (ExtXbarNSlaveRnd)
+  ) u_ext_bus (
+    .clk_i (clk_i),
+    .rst_ni(rst_nin_sync),
+
+    // Address map
+    // TODO: add if there are slaves connected to the external bus
+    .addr_map_i   (  /*ExtSlaveAddrRules*/),
+    .default_idx_i(  /*ExtSlaveDefaultIdx[IdxWidth-1:0]*/),
+
+    // X-HEEP master ports
+    .heep_core_instr_req_i (heep_core_instr_req),
+    .heep_core_instr_resp_o(heep_core_instr_rsp),
+
+    .heep_core_data_req_i (heep_core_data_req),
+    .heep_core_data_resp_o(heep_core_data_rsp),
+
+    .heep_debug_master_req_i (heep_debug_master_req),
+    .heep_debug_master_resp_o(heep_debug_master_rsp),
+
+    .heep_dma_read_req_i (heep_dma_read_req),
+    .heep_dma_read_resp_o(heep_dma_read_rsp),
+
+    .heep_dma_write_req_i (heep_dma_write_req),
+    .heep_dma_write_resp_o(heep_dma_write_rsp),
+
+    .heep_dma_addr_req_i (heep_dma_addr_req),
+    .heep_dma_addr_resp_o(heep_dma_addr_rsp),
+
+    // X-HEEP master ports
+    .ext_master_req_i (gr_heep_master_req),
+    .ext_master_resp_o(gr_heep_master_resp),
+
+    // X-HEEP slave ports
+    .heep_slave_req_o (heep_slave_req),
+    .heep_slave_resp_i(heep_slave_rsp),
+
+    // External slave ports
+    .ext_slave_req_o (ext_slave_req),
+    .ext_slave_resp_i(ext_slave_resp)
+
+  );
 
   // External peripherals bus
   // ------------------------
+  addr_decode #(
+    .NoIndices(gr_heep_pkg::ExtPeriphNSlaveRnd),
+    .NoRules  (gr_heep_pkg::ExtPeriphNSlaveRnd),
+    .addr_t   (logic [31:0]),
+    .rule_t   (addr_map_rule_pkg::addr_map_rule_t)
+  ) u_gr_heep_perpheral_decoder (
+    .addr_i(heep_peripheral_req.addr), // TODO: add if there are slaves connected to the external bus
+    .addr_map_i(/*gr_heep_pkg::ExtPeriphAddrRules*/), // TODO: add if there are slaves connected to the external bus
+    .idx_o(gr_heep_periph_select),
+    .dec_valid_o(),
+    .dec_error_o(),
+    .en_default_idx_i(1'b0),
+    .default_idx_i('0)
+  );
 
-  // Added for the bridge
-  assign heep_slave_req[0].req                       = req_i;
-  assign heep_slave_req[0].we                        = we_i;
-  assign heep_slave_req[0].be                        = be_i;
-  assign heep_slave_req[0].addr                      = addr_i;
-  assign heep_slave_req[0].wdata                     = wdata_i;
-
-  assign gnt_o                                       = heep_slave_rsp[0].gnt;
-  assign rvalid_o                                    = heep_slave_rsp[0].rvalid;
-  assign rdata_o                                     = heep_slave_rsp[0].rdata;
-
+  reg_demux #(
+    .NoPorts(gr_heep_pkg::ExtPeriphNSlaveRnd),
+    .req_t  (reg_pkg::reg_req_t),
+    .rsp_t  (reg_pkg::reg_rsp_t)
+  ) u_gr_heep_reg_demux (
+    .clk_i,
+    .rst_ni,
+    .in_select_i(gr_heep_periph_select),
+    .in_req_i   (heep_peripheral_req),
+    .in_rsp_o   (heep_peripheral_rsp),
+    .out_req_o  (gr_heep_peripheral_req),
+    .out_rsp_i  (gr_heep_peripheral_rsp)
+  );
 
   // External interrupts
   // -------------------
 
-  assign ext_int_vector                              = '0;
+  assign ext_int_vector   = '0;
 
   // Pad ring
   // --------
-  assign exit_value_out_x                            = exit_value[0];
+  assign exit_value_out_x = exit_value[0];
   pad_ring u_pad_ring (
     .rst_nio              (rst_ni),
     .rst_no               (rst_nin_x),

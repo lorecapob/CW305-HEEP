@@ -42,6 +42,7 @@
 #define RUN_CYCLES 500
 // #define TB_HIER_NAME "TOP.tb_system" // Replaced with the cw305 DUT
 #define TB_HIER_NAME "TOP.tb_system_cw305"
+#define CDC_CLOCK 0 // 0: no CDC clock
 // -------- Bridge2Xheep --------
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
@@ -441,18 +442,19 @@ void clkGen(Vtb_system_cw305 *dut)
 {
     dut->clk_i ^= 1;
 
-    // Generate the PLL clock. This way the PLL clock is generated at 1/8 of the USB (clk_i) clock frequency.
-    // Use this to test the synchronization mechanism.
-    // pll_cnt++;
-    // // Generate the PLL clock
-    // if (pll_cnt == 15){
-    //     dut->pll_clk1 ^= 1;
-    //     pll_cnt = 1;
-    // }
-
-    // Uncomment this to generate the PLL clock at the same frequency as the USB clock.
-    // Use this to fasten the simulation, since the synchronization mechanism has already been tested.
-    dut->pll_clk1 ^= 1;
+    #if CDC_CLOCK == 1 
+        // Generate the PLL clock. This way the PLL clock is generated at 1/8 of the USB (clk_i) clock frequency.
+        pll_cnt++;
+        // Generate the PLL clock
+        if (pll_cnt == 15){
+            dut->pll_clk1 ^= 1;
+            pll_cnt = 1;
+        }
+    #else
+        // Generate the PLL clock at the same frequency as the USB clock.
+        // Use this to fasten the simulation, since the synchronization mechanism has already been tested.
+        dut->pll_clk1 ^= 1;
+    #endif
 }
 
 void rstDut(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace)

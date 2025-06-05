@@ -296,26 +296,38 @@ module cw305_top #(
   // DUT
   // ---
   gr_heep_top u_gr_heep_top (
-    .rst_ni              (resetn),
-    .boot_select_i       (boot_select_i),
-    .execute_from_flash_i(execute_from_flash_i),
-    .jtag_tck_i          (jtag_tck),
-    .jtag_tms_i          (jtag_tms),
-    .jtag_trst_ni        (jtag_trst_n),
-    .jtag_tdi_i          (jtag_tdi),
-    .jtag_tdo_o          (jtag_tdo),
-    .uart_rx_i           (internal_gr_heep_uart_rx),
-    .uart_tx_o           (internal_gr_heep_uart_tx),
-    .exit_valid_o        (internal_exit_valid_o),
+    // Bridge interface
+    .bridge_instr_valid_i           (bridge_status_heep[1]),
+    .bridge_addr_valid_i            (bridge_status_heep[2]),
+    .bridge_rst_new_address_valid_o (bridge_rst_new_address_valid),
+    .bridge_rst_instr_valid_o       (bridge_rst_instr_valid),
+    .bridge_busy_o                  (/*bridge_status_heep[0]*/),
+    .bridge_instruction_i           (bridge_instruction),
+    .bridge_new_section_address_i   (bridge_new_address),
+    .bridge_OBI_rvalid_o            (bridge_data_valid),
+    .bridge_OBI_rdata_o             (bridge_data),
+
+    // X-HEEP interface
+    .rst_ni               (resetn),
+    .boot_select_i        (boot_select_i),
+    .execute_from_flash_i (execute_from_flash_i),
+    .jtag_tck_i           (jtag_tck),
+    .jtag_tms_i           (jtag_tms),
+    .jtag_trst_ni         (jtag_trst_n),
+    .jtag_tdi_i           (jtag_tdi),
+    .jtag_tdo_o           (jtag_tdo),
+    .uart_rx_i            (internal_gr_heep_uart_rx),
+    .uart_tx_o            (internal_gr_heep_uart_tx),
+    .exit_valid_o         (internal_exit_valid_o),
 
     //`ifdef VERILATOR
-    .gpio_0_io           (internal_gpio[0]),
-    .gpio_1_io           (internal_gpio[1]),
+    .gpio_0_io            (internal_gpio[0]),
+    .gpio_1_io            (internal_gpio[1]),
     //`endif
 
-    .gpio_2_o           (internal_gpio[2]),
-    .gpio_3_i           (internal_gpio[3]),
-    .gpio_4_o           (internal_gpio[4]),
+    .gpio_2_o             (internal_gpio[2]),
+    .gpio_3_i             (internal_gpio[3]),
+    .gpio_4_o             (internal_gpio[4]),
 
     //`ifdef VERILATOR
     // .gpio_5_io           (internal_gpio[5]),
@@ -363,20 +375,8 @@ module cw305_top #(
     // .i2s_sd_io           (),
    //`endif
 
-    .clk_i           (heep_clk),
-    .exit_value_o        (internal_exit_value_o[0]),
-
-    // Bridge signals
-    .req_i                (req_i),
-    .we_i                 (we_i),
-    .be_i                 (be_i),
-    .addr_i               (addr_i),
-    .wdata_i              (wdata_i),
-
-    .gnt_o                (gnt_o),
-    .rvalid_o             (rvalid_o),
-    .rdata_o              (rdata_o)
-
+    .clk_i                (heep_clk),
+    .exit_value_o         (internal_exit_value_o[0])
   );
 
   // Scope trigger
@@ -394,33 +394,6 @@ module cw305_top #(
   // Debug UART
   assign debug_heep_uart_rx = internal_gr_heep_uart_rx;
   assign debug_heep_uart_tx = internal_gr_heep_uart_tx;
-
-  // Bridge instantiation
-  bridge2xheep u_bridge2xheep (
-    .clk(heep_clk),
-    .rst_n(resetn),
-
-    // HEEP Side
-    .req(req_i),
-    .we(we_i),
-    .be(be_i),
-    .addr(addr_i),
-    .wdata(wdata_i),
-    .gnt(gnt_o),
-    .rvalid(rvalid_o),
-    .rdata(rdata_o),
-
-    // Bridge Side
-    .instr_valid(bridge_status_heep[1]),
-    .addr_valid(bridge_status_heep[2]),
-    .rst_new_address_valid(bridge_rst_new_address_valid),
-    .rst_instr_valid(bridge_rst_instr_valid),
-    .busy(/*bridge_status_heep[0]*/),
-    .instruction(bridge_instruction),
-    .new_section_address(bridge_new_address),
-    .OBI_rvalid(bridge_data_valid),
-    .OBI_rdata(bridge_data)
-  );
 
   wire rst_new_addr_valid_to_regs;
   wire rst_instr_valid_to_regs;
