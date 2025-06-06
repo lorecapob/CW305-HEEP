@@ -122,6 +122,7 @@ module gr_heep_top (
 
   // Interrupt vector
   logic      [core_v_mini_mcu_pkg::NEXT_INT-1:0]      ext_int_vector;
+  logic                                               ext_intr_peripheral;
 
   // Power Manager signals
   logic                                               cpu_subsystem_powergate_switch_n;
@@ -525,7 +526,12 @@ module gr_heep_top (
     .external_subsystem_clkgate_en_no   (external_subsystem_clkgate_en_n),
 
     // External interrupts
-    .intr_vector_ext_i(ext_int_vector),
+    .intr_vector_ext_i    (ext_int_vector),
+    .intr_ext_peripheral_i(ext_intr_peripheral),
+
+    .hw_fifo_done_i('0),
+    .hw_fifo_req_o (),
+    .hw_fifo_resp_i('0),
 
     .ext_dma_slot_tx_i('0),
     .ext_dma_slot_rx_i('0),
@@ -548,8 +554,8 @@ module gr_heep_top (
   gr_heep_peripherals u_gr_heep_peripherals (
     .clk_i                   (clk_i),
     .rst_ni                  (rst_nin_sync),
-    .gr_heep_master_req_o    (heep_slave_req[0]),
-    .gr_heep_master_resp_i   (heep_slave_resp[0]),
+    .gr_heep_master_req_o    (),
+    .gr_heep_master_resp_i   (),
     .gr_heep_slave_req_i     (ext_slave_req),
     .gr_heep_slave_resp_o    (ext_slave_resp),
     .gr_heep_peripheral_req_i(gr_heep_peripheral_req),
@@ -655,8 +661,8 @@ module gr_heep_top (
 
   // External interrupts
   // -------------------
-
-  assign ext_int_vector          = '0;
+  assign ext_intr_peripheral     = '0;
+  // assign ext_int_vector = '0;
 
   // Pad ring
   // --------

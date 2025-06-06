@@ -1,5 +1,5 @@
 # Copyright 2024 Politecnico di Torino.
-# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# Solderpad Hardware License Version 2.1 see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 #
 # File: mcu-gen.hjson
@@ -9,12 +9,12 @@
 
 {
     ram_address: 0
-    bus_type: "NtoM",
+    bus_type: "NtoM"
     ram_banks: {
         code_and_data: {
             num: 4
             sizes: [32]
-        },
+        }
         data_interleaved: {
             auto_section: auto
             type: interleaved
@@ -30,7 +30,7 @@
             start: 0
             #minimum size for freeRTOS and clang
             size: 0x00000E800
-        },
+        }
         {
             name: data
             start: 0x00000E800

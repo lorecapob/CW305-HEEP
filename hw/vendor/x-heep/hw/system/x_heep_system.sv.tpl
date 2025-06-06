@@ -5,6 +5,7 @@
 module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
+  import fifo_pkg::*;
 #(
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -13,13 +14,14 @@ module x_heep_system
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
     parameter AO_SPC_NUM = 0,
     //do not touch these parameters
-    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 1 : AO_SPC_NUM,
+    parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 
 ) (
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
+    input logic intr_ext_peripheral_i,
 
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
@@ -38,8 +40,11 @@ module x_heep_system
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
     input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
-    input reg_req_t  [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_req_i,
-    output reg_rsp_t [AO_SPC_NUM_RND-1:0] ext_ao_peripheral_resp_o,
+    output fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
+    input fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+
+    input reg_req_t  [AO_SPC_NUM_RND:0] ext_ao_peripheral_req_i,
+    output reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_resp_o,
     
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
@@ -56,6 +61,7 @@ module x_heep_system
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_done_i,
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -129,6 +135,7 @@ ${pad.internal_signals}
 ${pad.core_v_mini_mcu_bonding}
 % endfor
     .intr_vector_ext_i,
+    .intr_ext_peripheral_i,
     .xif_compressed_if,
     .xif_issue_if,
     .xif_commit_if,
@@ -153,7 +160,10 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_dma_write_resp_i,
     .ext_dma_addr_req_o,
     .ext_dma_addr_resp_i,
+    .hw_fifo_done_i,
     .ext_dma_stop_i,
+    .hw_fifo_req_o,
+    .hw_fifo_resp_i,
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
     .ext_debug_req_o(ext_debug_req),

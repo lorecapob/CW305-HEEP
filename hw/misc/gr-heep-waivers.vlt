@@ -33,4 +33,8 @@ lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Signal is not driven: '*
 lint_off -rule UNDRIVEN -file "*gr_heep_top.sv" -match "Bits of signal are not driven: 'external_subsystem_powergate_switch_ack_n'[1]"
 
 lint_off -rule UNDRIVEN -file "*/hw/peripherals/gr_heep_peripherals.sv" -match "Signal is not driven: 'gr_heep_master_req_o'"
+lint_off -rule UNDRIVEN -file "*/hw/peripherals/gr_heep_peripherals.sv" -match "Signal is not driven: 'gr_heep_master_req_o'"
+lint_off -rule UNDRIVEN -file "*/hw/vendor/x-heep/hw/core-v-mini-mcu/debug_subsystem.sv" -match "Signal is not driven: 'spi_slave_miso_oe_o'"
+
+
 

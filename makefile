@@ -64,7 +64,7 @@ LOG_LEVEL			?= LOG_NORMAL
 BOOT_MODE			?= force # jtag: wait for JTAG (DPI module), flash: boot from flash, force: load firmware into SRAM
 FIRMWARE			?= $(ROOT_DIR)/build/sw/app/main.hex
 VCD_MODE			?= 0 # QuestaSim-only - 0: no dumo, 1: dump always active, 2: dump triggered by GPIO 0
-MAX_CYCLES			?= 3000000
+MAX_CYCLES			?= 300000
 FUSESOC_FLAGS		?=
 FUSESOC_ARGS		?=
 FUSESOC_ARGS		+= --VERILATOR_VERSION=$(VERILATOR_VERSION_1)
@@ -194,7 +194,7 @@ verilator-sim: | check-firmware verilator-build .verilator-check-params
 		--trace=true \
 		$(FUSESOC_ARGS)
 	cat $(FUSESOC_BUILD_DIR)/sim-verilator/uart.log
-	mv $(FUSESOC_BUILD_DIR)/sim-verilator/waves.fst $(BUILD_DIR)/sim-common/waves.fst
+	mv $(FUSESOC_BUILD_DIR)/sim-verilator/logs/waves.fst $(BUILD_DIR)/sim-common/waves.fst
 
 ## Launch simulation
 .PHONY: verilator-run
@@ -207,7 +207,7 @@ verilator-run: | check-firmware .verilator-check-params
 		--trace=true \
 		$(FUSESOC_ARGS)
 	cat $(FUSESOC_BUILD_DIR)/sim-verilator/uart.log
-	mv $(FUSESOC_BUILD_DIR)/sim-verilator/waves.fst $(BUILD_DIR)/sim-common/waves.fst
+	mv $(FUSESOC_BUILD_DIR)/sim-verilator/logs/waves.fst $(BUILD_DIR)/sim-common/waves.fst
 
 ## Launch simulation without waveform dumping
 .PHONY: verilator-opt
@@ -224,7 +224,7 @@ verilator-opt: | check-firmware .verilator-check-params
 # Open dumped waveform with GTKWave
 .PHONY: verilator-waves
 verilator-waves: | .check-gtkwave
-	gtkwave -a tb/misc/verilator-waves_cw305.gtkw $(BUILD_DIR)/sim-common/waves.fst 
+	gtkwave -a tb/misc/verilator_waves_keccak_debug.gtkw $(BUILD_DIR)/sim-common/waves.fst 
 
 .PHONY: vivado-fpga-cw305
 vivado-fpga-cw305:

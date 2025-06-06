@@ -336,11 +336,12 @@ int main(int argc, char *argv[])
             if (req->instr_valid || req->addr_valid)
             {
                 // Check if the address is in the correct range
-                if (req->address >= 0x180)
-                {
-                    // Send the instruction 1 byte at the time                
-                    sendInstr(dut, gen_waves, trace, req);
-                }
+                //if (req->address >= 0x180)
+                //{
+                //    // Send the instruction 1 byte at the time                
+                //    sendInstr(dut, gen_waves, trace, req);
+                //}
+                sendInstr(dut, gen_waves, trace, req);
             }
         }
 

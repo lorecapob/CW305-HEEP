@@ -1,5 +1,5 @@
 # Copyright 2024 Politecnico di Torino.
-# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# Solderpad Hardware License Version 2.1 see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 #
 # File: gr-heep-pads.hjson
@@ -10,13 +10,13 @@
 {
     pads: {
         clk: {
-            num: 1,
+            num: 1
             type: input
-        },
+        }
         exit_value: {
-            num: 1,
+            num: 1
             type: output
             driven_manually: True
-        },
+        }
     }
 }
