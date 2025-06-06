@@ -336,11 +336,11 @@ int main(int argc, char *argv[])
             if (req->instr_valid || req->addr_valid)
             {
                 // Check if the address is in the correct range
-                if (req->address >= 0x180)
-                {
+                // if (req->address >= 0x180)
+                // {
                     // Send the instruction 1 byte at the time                
                     sendInstr(dut, gen_waves, trace, req);
-                }
+                // }
             }
         }
 
@@ -659,10 +659,10 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
                 // call setAddress Method
                 req->address = address;
 
-                if (address >= 0x180)
-                {
+                // if (address >= 0x180)
+                // {
                     req->addr_valid = 1;
-                }
+                // }
 
                 // Workaround to avoid misalignement of instructions at 0x180.
                 // In fact, instruction with address lower than 0x180 are not valid and should be discarded.
@@ -676,10 +676,10 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
                 // address 0x180 is read, a new valid is set to 1.
                 // For all others jumps, there is not this issue, since the drive method in the bridge manages to set valid
                 // to 0 when the instruction is written in the RAM.
-                if (req->address == 0x180)
-                {
+                // if (req->address == 0x180)
+                // {
                     req->instr_valid = 0;
-                }
+                // }
 
                 address = 0;
             }
