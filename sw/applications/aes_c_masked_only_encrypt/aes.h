@@ -22,7 +22,7 @@
   #define CTR 1
 #endif
 
-//#define MASKED 0
+#define MASKED 1
 
 #define AES128 1
 //#define AES192 1

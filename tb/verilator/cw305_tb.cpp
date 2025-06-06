@@ -42,6 +42,7 @@
 #define RUN_CYCLES 500
 // #define TB_HIER_NAME "TOP.tb_system" // Replaced with the cw305 DUT
 #define TB_HIER_NAME "TOP.tb_system_cw305"
+#define CDC_CLOCK 0 // 0: no CDC clock
 // -------- Bridge2Xheep --------
 #define NUMBER_0_9 48 // '0' = 48 in ASCII
 #define NUMBER_A_F 55 // 'A' = 65 in ASCII
@@ -335,11 +336,11 @@ int main(int argc, char *argv[])
             if (req->instr_valid || req->addr_valid)
             {
                 // Check if the address is in the correct range
-                if (req->address >= 0x180)
-                {
+                // if (req->address >= 0x180)
+                // {
                     // Send the instruction 1 byte at the time                
                     sendInstr(dut, gen_waves, trace, req);
-                }
+                // }
             }
         }
 
@@ -441,17 +442,19 @@ void clkGen(Vtb_system_cw305 *dut)
 {
     dut->clk_i ^= 1;
 
-    // Generate the PLL clock. This way the PLL clock is generated at 1/8 of the USB (clk_i) clock frequency.
-    pll_cnt++;
-    // Generate the PLL clock
-    if (pll_cnt == 15){
+    #if CDC_CLOCK == 1 
+        // Generate the PLL clock. This way the PLL clock is generated at 1/8 of the USB (clk_i) clock frequency.
+        pll_cnt++;
+        // Generate the PLL clock
+        if (pll_cnt == 15){
+            dut->pll_clk1 ^= 1;
+            pll_cnt = 1;
+        }
+    #else
+        // Generate the PLL clock at the same frequency as the USB clock.
+        // Use this to fasten the simulation, since the synchronization mechanism has already been tested.
         dut->pll_clk1 ^= 1;
-        pll_cnt = 1;
-    }
-
-    // Uncomment this to generate the PLL clock at the same frequency as the USB clock.
-    // Use this to fasten the simulation, since the synchronization mechanism has already been tested.
-    // dut->pll_clk1 ^= 1;
+    #endif
 }
 
 void rstDut(Vtb_system_cw305 *dut, uint8_t gen_waves, VerilatedFstC *trace)
@@ -656,10 +659,10 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
                 // call setAddress Method
                 req->address = address;
 
-                if (address >= 0x180)
-                {
+                // if (address >= 0x180)
+                // {
                     req->addr_valid = 1;
-                }
+                // }
 
                 // Workaround to avoid misalignement of instructions at 0x180.
                 // In fact, instruction with address lower than 0x180 are not valid and should be discarded.
@@ -673,10 +676,10 @@ int genReqBridge(std::ifstream &hex_file, Vtb_system_cw305 *dut, Drv *drv, ReqBr
                 // address 0x180 is read, a new valid is set to 1.
                 // For all others jumps, there is not this issue, since the drive method in the bridge manages to set valid
                 // to 0 when the instruction is written in the RAM.
-                if (req->address == 0x180)
-                {
+                // if (req->address == 0x180)
+                // {
                     req->instr_valid = 0;
-                }
+                // }
 
                 address = 0;
             }

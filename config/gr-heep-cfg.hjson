@@ -18,7 +18,7 @@
 
     // Slaves memory map
     ext_xbar_nmasters: 1 // Added for the Bridge2Xheep
-    // ext_xbar_slaves: {
+    ext_xbar_slaves: {
     //     slave_0: {
     //         offset:    "0x00000000",
     //         length:    "0x00010000",
@@ -27,10 +27,10 @@
     //         offset:    "0x00010000",
     //         length:    "0x00010000",
     //     },
-    // },
+    },
 
     // External peripherals
-    // ext_periph: {
+    ext_periph: {
     //     peripheral_0: {
     //         offset: "0x0000000",
     //         length: "0x0001000",
@@ -43,7 +43,7 @@
     //         offset: "0x00002000",
     //         length: "0x00001000",
     //     },
-    // },
+    },
 
     // ao_spc_num: 1,
 

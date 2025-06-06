@@ -9,13 +9,16 @@
 #define CTR 0
 #define ECB 1
 
-#define MASKED 1
-#define ENCRYPTION_ITERATIONS 5000
-#define FIXED_PLAINTEXT 1
-
 #include "aes.h"
+// #include "sbox.h" // TODO: add library for the sbox choice (other masked sbox required)
 
-// ----------------------------------------------
+// #define SBOX_VERSION 0
+
+#define ITERATIONS 1 // Number of iterations for the Success Rate Test
+#define POWER_TRACES 5000 // Number of power traces collected for each iteration
+#define FIXED_PLAINTEXT 0 // 1 = use fixed plaintext, 0 = random plaintext. Needed for the TVLA test.
+
+// --------- X-HEEP includes and defines ---------
 #define XHEEP_PRINT 0
 
 #include "core_v_mini_mcu.h"
@@ -27,6 +30,7 @@
 // ----------------------------------------------
 
 static void phex(uint8_t* str);
+
 
 int main(void)
 {
@@ -55,12 +59,15 @@ int main(void)
     }
     bool pin_value = 0;
 
-    printf("X-HEEP Masked AES ECB encryption test\n");
+    // Choose the S-box to use
+    // AES_init_sbox(SBOX_VERSION);
+    // AES_init_inv_sbox(SBOX_VERSION);
 
     // Secret key
     uint8_t key[] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
     // uint8_t key[] = { 0x3c, 0x8f, 0x26, 0x27, 0x39, 0xbf, 0xe3, 0xb1, 0xbc, 0x08, 0x26, 0x99, 0x1a, 0xd0, 0x52, 0x4d };
 #if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
+    printf("X-HEEP Masked AES ECB encryption test\n");
     printf("Key: ");
     phex(key);
     printf("\n");
@@ -86,42 +93,61 @@ int main(void)
     struct AES_ctx ctx;
     AES_init_ctx(&ctx, key);
 
-    for (int i = 0; i < ENCRYPTION_ITERATIONS; i++) {
+    for (int k = 0; k < ITERATIONS; k++) {
     #if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
-        printf("Iteration %d\n", i);
-        printf("Plaintext: ");
-        phex(plain_text);
+        printf("Iteration %d\n\n", k);
     #endif
 
         // Wait for the trigger signal
         while (!pin_value) {
             gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
         }
-        // Set the trigger signal for the scope
-        gpio_write(GPIO_SCOPE_TRIGGER, 1);
-
-        // When this function is called, the plaintext is encrypted in place and the ciphertext 
-        // is stored in the same plain_text variable.
-        AES_ECB_encrypt(&ctx, plain_text);
-
-        // Reset the trigger signal for the scope
-        gpio_write(GPIO_SCOPE_TRIGGER, 0);
-        // Wait for the trigger signal to go low again
+        // Wait for the trigger signal to be low
         while (pin_value) {
             gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
         }
 
-    #if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
-        printf("Ciphertext: ");
-        phex(plain_text);
-        printf("\n");
-    #endif
+        for (int i = 0; i < POWER_TRACES; i++) {
 
-    #if defined(FIXED_PLAINTEXT) && (FIXED_PLAINTEXT == 1)
-        // Set the plaintext back to the fixed value
-        memcpy(plain_text, fixed_plain_text, sizeof(plain_text));
-    #endif
+        #if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
+            printf("Trace %d\n", i);
+            printf("Plaintext: ");
+            phex(plain_text);
+        #endif
+
+            // Wait for the trigger signal
+            while (!pin_value) {
+                gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+            }
+            // Set the trigger signal for the scope
+            gpio_write(GPIO_SCOPE_TRIGGER, 1);
+
+            // When this function is called, the plaintext is encrypted in place and the ciphertext 
+            // is stored in the same plain_text variable.
+            AES_ECB_encrypt(&ctx, plain_text);
+
+            // Reset the trigger signal for the scope
+            gpio_write(GPIO_SCOPE_TRIGGER, 0);
+            // Wait for the trigger signal to go low again
+            while (pin_value) {
+                gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
+            }
+
+        #if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
+            printf("Ciphertext: ");
+            phex(plain_text);
+            printf("\n");
+        #endif
+
+        #if defined(FIXED_PLAINTEXT) && (FIXED_PLAINTEXT == 1)
+            // Set the plaintext back to the fixed value
+            memcpy(plain_text, fixed_plain_text, sizeof(plain_text));
+        #endif
+        }
     }
+#if defined(XHEEP_PRINT) && (XHEEP_PRINT == 1)
+    printf("Finished!\n");
+#endif
 
     return 0;
 }

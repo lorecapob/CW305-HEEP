@@ -11,8 +11,8 @@
     cpu_type: cv32e20
 
     linker_script: {
-        stack_size: 0x800,
-        heap_size: 0x800,
+        stack_size: 0x1800,
+        heap_size: 0x1800,
     }
 
     debug: {

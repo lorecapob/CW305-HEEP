@@ -18,7 +18,7 @@
         data_interleaved: {
             auto_section: auto
             type: interleaved
-            num: 2
+            num: 4
             size: 16
         }
     }

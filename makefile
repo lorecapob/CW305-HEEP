@@ -167,8 +167,8 @@ $(GR_HEEP_GEN_LOCK): $(GR_HEEP_GEN_CFG) $(GR_HEEP_TOP_TPL) $(MCU_GEN_LOCK)
 	python3 util/gr-heep-gen.py $(GR_HEEP_GEN_OPTS) \
 		--outdir sw/external/lib/runtime \
 		--tpl-c sw/external/lib/runtime/gr_heep.h.tpl
-	$(FUSESOC) run --no-export --target lint polito:gr_heep:gr_heep
-	$(FUSESOC) run --no-export --target format polito:gr_heep:gr_heep
+	$(FUSESOC) run --no-export --target lint polito:cw305_heep:cw305_heep
+	$(FUSESOC) run --no-export --target format polito:cw305_heep:cw305_heep
 	@echo "### DONE! gr-HEEP files generated successfully"
 	touch $@
 
@@ -314,13 +314,13 @@ clean-lock:
 .PHONY: format
 format: $(GR_HEEP_GEN_LOCK)
 	@echo "### Formatting gr-HEEP RTL files..."
-	$(FUSESOC) run --no-export --target format polito:gr_heep:gr_heep
+	$(FUSESOC) run --no-export --target format polito:cw305_heep:cw305_heep
 
 ## Static analysis
 .PHONY: lint
 lint: $(GR_HEEP_GEN_LOCK)
 	@echo "### Checking gr-HEEP syntax and code style..."
-	$(FUSESOC) run --no-export --target lint polito:gr_heep:gr_heep
+	$(FUSESOC) run --no-export --target lint polito:cw305_heep:cw305_heep
 
 ## Print variables
 .PHONY: .print

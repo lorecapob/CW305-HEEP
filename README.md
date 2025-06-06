@@ -31,14 +31,10 @@ conda activate core-v-mini-mcu
 # Microcontroller generation and initialization
 `CW305-HEEP` generation is automated by means of a Python script. Some design parameters can be adjusted to user preferences, as described in [Read the docs - Generating the MCU](https://x-heep.readthedocs.io/en/latest/GettingStarted/GeneratingMCU.html).
 
+To generate the microcontroller:
+
 ```
 make gr-heep-gen
-```
-
-To regenerate only the microcontroller:
-
-```
-make mcu-gen
 ```
 
 # Compiling applications
@@ -83,10 +79,19 @@ To run the simulation without without waveform dumping (faster):
 make verilator-opt
 ```
 
-To show the simulation waveforms using `gtkwave`:
+To show the simulation waveforms using `gtkwave` (make sure `gtkwave` is installed):
 
 ```
 make verilator-waves
+```
+
+The board uses a USB clock for the communication with the host PC and a X-HEEP clock for the FPGA where the microcontroller is synthesized. The first one is fixed at 96 MHz while the second one can be set according to the synthesis requirements. The presence of 2 separate clock domains required the addition of synchronization mechanisms, which can be simulated too.
+In `cw305_tb.cpp` is possible to set the PLL clock frequency that will be used for the FPGA domain. Search the function `void clkGen(Vtb_system_cw305 *dut)` for further details. The PLL clock frequency is equal to the USB clock frequency by default to fasten the simulation, but it can be easily set as 1/8 of the USB one. However, this will dramatically increase the simulation time. Use this option only if you are interested in testing the synchronization mechanism.
+
+If the simulation returns an error about max simulation time reached, just increase the `MAX_CYCLES` parameter value. For instance:
+
+```
+make verilator-sim MAX_CYCLES=<set__desired_max_cycles>
 ```
 
 # Synthesis
@@ -96,7 +101,7 @@ Synthesis can be performed automatically using `Vivado`:
 make vivado-fpga
 ```
 
-The synthesis also supports `ILA` (Integrated Logic Analizer). For example purposes, an `ILA` instance is placed between the `bridge` and `X-HEEP` during the synthesis by default. It can be used to monitor the communication between these two modules.
+The synthesis also supports `ILA` (Integrated Logic Analizer).
 
 The generated bitsream can be found at `build/polito_cw305_heep_cw305_heep_0.0.1/cw305-vivado/polito_cw305_heep_cw305_heep_0.0.1.runs/impl_1/cw305_top.bit`
 
