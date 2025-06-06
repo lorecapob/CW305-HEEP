@@ -64,7 +64,7 @@ LOG_LEVEL			?= LOG_NORMAL
 BOOT_MODE			?= force # jtag: wait for JTAG (DPI module), flash: boot from flash, force: load firmware into SRAM
 FIRMWARE			?= $(ROOT_DIR)/build/sw/app/main.hex
 VCD_MODE			?= 0 # QuestaSim-only - 0: no dumo, 1: dump always active, 2: dump triggered by GPIO 0
-MAX_CYCLES			?= 300000
+MAX_CYCLES			?= 800000
 FUSESOC_FLAGS		?=
 FUSESOC_ARGS		?=
 FUSESOC_ARGS		+= --VERILATOR_VERSION=$(VERILATOR_VERSION_1)
@@ -300,7 +300,7 @@ check-firmware:
 ## @section Cleaning
 
 ## Clean build directory
-.PHONY: clean clean-lock
+.PHONY: clean clean-lock clean-app
 clean:
 	$(RM) $(GR_HEEP_GEN_LOCK)
 	$(RM) hw/ip/pad-ring/pad-ring.sv
@@ -309,7 +309,8 @@ clean:
 	$(MAKE) -C $(HEEP_DIR) clean-all
 clean-lock:
 	$(RM) $(BUILD_DIR)/.*.lock
-
+clean-app:
+	$(MAKE) -C $(HEEP_DIR) clean-app
 
 ## @section Format and Variables
 

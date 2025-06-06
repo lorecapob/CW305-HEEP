@@ -29,4 +29,5 @@
 - [ ] Modify the testbench in order to cover the previous case scenario
 - [ ] Modify the FPGA pin constraints file
 - [ ] Connect bridge2Xheep to gr_heep_peripherals in gr_heep_peripherals.sv.tpl
-- [ ] Add CDC 
+- [ ] Add CDC simulation parameter to makefile
+- [ ] Modify keccak_driver.c to have printf disabled in simulation and enabled in FPGA 

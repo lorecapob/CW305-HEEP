@@ -391,7 +391,7 @@ ${pad.core_v_mini_mcu_bonding}
   // -------------------
   assign ext_intr_peripheral = '0;
   // assign ext_int_vector = '0;
-
+   
   // Pad ring
   // --------
   assign exit_value_out_x = exit_value[0];

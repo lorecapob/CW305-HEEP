@@ -30,7 +30,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -57,11 +57,15 @@ plic_result_t plic_res;
 
 /* ISR that just sets a flag */
 volatile int keccak_done = 0;
-// Own defined ext interrupt handler
-//void handler_irq_external(){
-//  keccak_done = 1;
-//  //printf("D\n");
-//}
+static void isr_keccak_done(uint32_t id)
+{
+    /* 1.  Clear the pending bit *inside* the accelerator           */
+    //((volatile uint32_t *)KECCAK_STATUS_START_ADDR)[0] =
+    //    1 << KECCAK_STATUS_DONE_BIT;
+
+    /* 2.  Tell the main thread we finished                          */
+    keccak_done = 1;
+}
 
 // UTILITIES
 
@@ -101,32 +105,33 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
   unsigned int instr, cycles, ldstall, jrstall, imstall;
   
   uint32_t* ext_addr_4B_PTR = (uint32_t*)KECCAK_DIN_START_ADDR;
- 
+  PRINTF("!");
   // Keccak accelerator send interrupt on ext_intr line 0
-  //printf("Interrupt id : %d\n", EXT_INTR_0);
-  //printf("Init the PLIC...");
+  //PRINTF("Interrupt id : %d\n", EXT_INTR_0);
+  //PRINTF("Init the PLIC...");
   plic_res = plic_Init();                                 // initialise PLIC fabric
   if (plic_res != kPlicOk) {
       PRINTF("Init PLIC failed\n\r;");
       return -1;
   }
-  //printf("Number of clock cycles : %d\n", cycles);
-  
+  //PRINTF("Number of clock cycles : %d\n", cycles);
+  PRINTF("!");
   // Set Keccak priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = plic_irq_set_priority(EXT_INTR_0, 1); // Keccak done IRQ
     if (plic_res != kPlicOk) {
       PRINTF("Failed\n\r;");
       return -1;
   }
-
+PRINTF("!");
   // Enable the interrupt in reg 0 
-  //printf("Enable Keccak interrupt...");
+  //PRINTF("Enable Keccak interrupt...");
   plic_res = plic_irq_set_enabled(EXT_INTR_0, kPlicToggleEnabled);
   if (plic_res != kPlicOk) {
     PRINTF("Failed\n\r;");
     return -1;
   }
-
+PRINTF("!");
+  plic_assign_external_irq_handler(EXT_INTR_0, isr_keccak_done); 
   // Enable interrupt on processor side
   // Enable global interrupt for machine-level interrupts
   CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -136,18 +141,18 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
 
 /* register the handler exactly once */
 //  plic_irq_set_handler(EXT_INTR_0, isr_keccak_done);
-
+PRINTF("!");
   // Starting the performance counter
   CSR_WRITE(CSR_REG_MCYCLE, 0);
 
   #if USE_DMA == 1
-  printf("Keccak : using DMA\n");
+  PRINTF("Keccak : using DMA\n");
   // The DMA is initialized (i.e. Any current transaction is cleaned.)
   dma_init(NULL);
     
   dma_config_flags_t res;
 
-  //printf("din_src_ptr: %04x, keccak_din_ptr : %04x\n", Din_4B, ext_addr_4B_PTR);
+  //PRINTF("din_src_ptr: %04x, keccak_din_ptr : %04x\n", Din_4B, ext_addr_4B_PTR);
 
   // First DMA transaction consist on loading Din in Keccak register file
    
@@ -185,35 +190,37 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
                               };
   // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
 
-printf("\n\n=====================================\n\n");
-printf("    TESTING SINGLE MODE WITH KECCAK  ");
-printf("\n\n=====================================\n\n");
+PRINTF("\n\n=====================================\n\n");
+PRINTF("    TESTING SINGLE MODE WITH KECCAK  ");
+PRINTF("\n\n=====================================\n\n");
 
   RUN_DMA                                                                                                          \
   WAIT_DMA    
 
-  printf(">> Finished transaction Din. \n");
+  PRINTF(">> Finished transaction Din. \n");
 
   #else
-  //printf("Keccak : not using DMA\n");
+  PRINTF("!");
+  //PRINTF("Keccak : not using DMA\n");
   for (int i = 0; i<50; i++)
   {
      Din_reg_start[i] = Din[i];
   }
 
   #endif
-  
+  PRINTF("!");
+  keccak_done = 0; // Reset the done flag
   asm volatile ("": : : "memory");
   *ctrl_reg = 1 << KECCAK_CTRL_CTRL_START_BIT; // start core
   asm volatile ("": : : "memory");
   *ctrl_reg = 0 << KECCAK_CTRL_CTRL_START_BIT;
-
-  printf("Keccak started...\n");
+  PRINTF("!");
+  PRINTF("Keccak started...\n");
   // Wait till keccak is done
   while(keccak_done==0) {
       wait_for_interrupt();
   }
-  printf("Keccak finished...\n");
+  PRINTF("Keccak finished...\n");
 	 
   #if USE_DMA == 1
 
@@ -221,26 +228,26 @@ printf("\n\n=====================================\n\n");
   tgt_src.ptr = ext_addr_4B_PTR;
   tgt_dst.ptr = Dout;
 
-  //printf("dout_dst_ptr: %04x, keccak_dout_ptr : %04x\n", Dout_4B, ext_addr_4B_PTR);
+  //PRINTF("dout_dst_ptr: %04x, keccak_dout_ptr : %04x\n", Dout_4B, ext_addr_4B_PTR);
 
   // Second DMA transaction consist on reading Dout from Keccak register file
 
   RUN_DMA
   WAIT_DMA    
-  printf(">> Finished transaction Dout. \n");
+  PRINTF(">> Finished transaction Dout. \n");
      
   #else
   for (volatile int i = 0; i<DATA_SIZE; i++){
      Dout[i] = Dout_reg_start[i];
-     printf("Dout[%d]=%04X\n", i, Dout[i]);
+     PRINTF("Dout[%d]=%04X\n", i, Dout[i]);
   }
 
   #endif
 
   // stop the HW counter used for monitoring
   CSR_READ(CSR_REG_MCYCLE, &cycles);
-  printf("Number of clock cycles : %d\n", cycles);
-  //printf("Number of instructions : %d\nNumber of clock cycles: %d\nCPI: %f%f\n",instr_cnt, cycles_cnt, (float) instr_cnt/cycles_cnt);
+  PRINTF("Number of clock cycles : %d\n", cycles);
+  //PRINTF("Number of instructions : %d\nNumber of clock cycles: %d\nCPI: %f%f\n",instr_cnt, cycles_cnt, (float) instr_cnt/cycles_cnt);
   
 }
 
