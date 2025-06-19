@@ -10,6 +10,9 @@ static inline uint64_t ROR(uint64_t x, int n) {
 }
 
 static inline void ROUND(ascon_state_t* s, uint8_t C) {
+  // Set the trigger signal for the scope
+  gpio_write(4, 1);
+
   ascon_state_t t;
   /* addition of round constant */
   s->x[2] ^= C;
@@ -36,6 +39,10 @@ static inline void ROUND(ascon_state_t* s, uint8_t C) {
   s->x[2] = t.x[2] ^ ROR(t.x[2], 1) ^ ROR(t.x[2], 6);
   s->x[3] = t.x[3] ^ ROR(t.x[3], 10) ^ ROR(t.x[3], 17);
   s->x[4] = t.x[4] ^ ROR(t.x[4], 7) ^ ROR(t.x[4], 41);
+  
+  // Reset the trigger signal for the scope
+  gpio_write(4, 0);
+
   printstate(" round output", s);
 }
 
