@@ -16,7 +16,7 @@
 #define GPIO_SCOPE_TRIGGER 4
 // ----------------------------------------------
 
-#define POWER_TRACES 1 // Number of power traces collected for each iteration
+#define POWER_TRACES 10000 // Number of power traces collected for each iteration
 
 
 void print(unsigned char c, unsigned char* x, unsigned long long xlen) {
