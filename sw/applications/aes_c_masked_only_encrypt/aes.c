@@ -691,6 +691,9 @@ static void CipherMasked(state_t *state, const uint8_t *RoundKey)
   // Last one without MixColumns()
   for (round = 1;; round++)
   {
+    // Set the trigger signal for the scope
+    if (round == 1) gpio_write(4, 1);
+
     // Mask changes from M to M'
     SubBytesMasked(state);
 
@@ -713,6 +716,9 @@ static void CipherMasked(state_t *state, const uint8_t *RoundKey)
     // Add the First round key to the state before starting the rounds.
     // Masks change from M1',M2',M3',M4' to M
     AddRoundKeyMasked(round, state, RoundKeyMasked);
+
+    // Reset the trigger signal for the scope
+    if (round == 1) gpio_write(4, 0);
   }
 
   // Mask are removed by the last addroundkey

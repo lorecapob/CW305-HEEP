@@ -437,6 +437,9 @@ static void Cipher(state_t* state, const uint8_t* RoundKey)
   // Last one without MixColumns()
   for (round = 1; ; ++round)
   {
+    // Set the trigger signal for the scope
+    if (round == 1) gpio_write(4, 1);
+    
     SubBytes(state);
     ShiftRows(state);
     if (round == Nr) {
@@ -444,6 +447,9 @@ static void Cipher(state_t* state, const uint8_t* RoundKey)
     }
     MixColumns(state);
     AddRoundKey(round, state, RoundKey);
+
+    // Reset the trigger signal for the scope
+    if (round == 1) gpio_write(4, 0);
   }
   // Add round key to last round
   AddRoundKey(Nr, state, RoundKey);

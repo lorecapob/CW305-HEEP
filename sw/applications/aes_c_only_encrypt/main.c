@@ -72,12 +72,8 @@ int main(void)
     printf("\n");
 #endif
 
-    // Plaintext - Pseudo-randomly generated
-    srand(42);
-    uint8_t plain_text[16];
-    for (int i = 0; i < 16; i++) {
-        plain_text[i] = rand();
-    }
+    // Initial Plaintext
+    uint8_t plain_text[16] = { 0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a };
 
     // Plaintext - Fixed value, equal to the first random plaintext generated above
     uint8_t fixed_plain_text[16];
@@ -118,15 +114,11 @@ int main(void)
             while (!pin_value) {
                 gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
             }
-            // Set the trigger signal for the scope
-            gpio_write(GPIO_SCOPE_TRIGGER, 1);
 
             // When this function is called, the plaintext is encrypted in place and the ciphertext 
             // is stored in the same plain_text variable.
             AES_ECB_encrypt(&ctx, plain_text);
 
-            // Reset the trigger signal for the scope
-            gpio_write(GPIO_SCOPE_TRIGGER, 0);
             // Wait for the trigger signal to go low again
             while (pin_value) {
                 gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
