@@ -10,8 +10,8 @@ static inline uint64_t ROR(uint64_t x, int n) {
 }
 
 static inline void ROUND(ascon_state_t* s, uint8_t C) {
-  // Set the trigger signal for the scope
-  gpio_write(4, 1);
+  // Set the trigger signal for the scope just for the first round
+  if (C == 0xf0) gpio_write(4, 1);
 
   ascon_state_t t;
   /* addition of round constant */
@@ -41,7 +41,7 @@ static inline void ROUND(ascon_state_t* s, uint8_t C) {
   s->x[4] = t.x[4] ^ ROR(t.x[4], 7) ^ ROR(t.x[4], 41);
   
   // Reset the trigger signal for the scope
-  gpio_write(4, 0);
+  if (C == 0xf0) gpio_write(4, 0);
 
   printstate(" round output", s);
 }
