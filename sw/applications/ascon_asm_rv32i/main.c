@@ -23,7 +23,7 @@
 #include "crypto_aead.h"
 
 // --------- X-HEEP includes and defines ---------
-#define XHEEP_PRINT 1
+#define XHEEP_PRINT 0
 
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
@@ -34,7 +34,7 @@
 // ----------------------------------------------
 
 // Number of power traces collected for each iteration
-#define POWER_TRACES 2
+#define POWER_TRACES 50000
 
 
 void print(unsigned char c, unsigned char* x, unsigned long long xlen) {
@@ -100,9 +100,13 @@ int main() {
     while (!pin_value) {
       gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
     }
+    // Trigger the scope
+    gpio_write(GPIO_SCOPE_TRIGGER, 1);
     
     result |= crypto_aead_encrypt(c, &clen, m, mlen, a, alen, (void*)0, n, k);
 
+    // Reset the trigger signal
+    gpio_write(GPIO_SCOPE_TRIGGER, 0);
     // Wait for the trigger signal to go low again
     while (pin_value) {
       gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
