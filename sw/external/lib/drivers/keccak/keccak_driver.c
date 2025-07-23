@@ -114,7 +114,7 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
       PRINTF("Init PLIC failed\n\r;");
       return -1;
   }
-  PRINTF("Number of clock cycles : %d\n", cycles);
+  PRINTF("At start : number of clock cycles : %d\n", cycles);
   // Set Keccak priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = plic_irq_set_priority(EXT_INTR_0, 1); // Keccak done IRQ
     if (plic_res != kPlicOk) {
@@ -128,7 +128,6 @@ void KeccakF1600_StatePermute(uint32_t* Din, uint32_t* Dout)
     PRINTF("Failed\n\r;");
     return -1;
   }
-PRINTF("!");
   plic_assign_external_irq_handler(EXT_INTR_0, isr_keccak_done); 
   // Enable interrupt on processor side
   // Enable global interrupt for machine-level interrupts
@@ -147,7 +146,7 @@ PRINTF("!");
     
   dma_config_flags_t res;
 
-  PRINTF("din_src_ptr: %04x, keccak_din_ptr : %04x\n", Din_4B, ext_addr_4B_PTR);
+  PRINTF("din_src_ptr: %04x, keccak_din_ptr : %04x\n", Din, ext_addr_4B_PTR);
 
   // First DMA transaction consist on loading Din in Keccak register file
    
@@ -223,7 +222,7 @@ PRINTF("\n\n=====================================\n\n");
   tgt_src.ptr = ext_addr_4B_PTR;
   tgt_dst.ptr = Dout;
 
-  PRINTF("dout_dst_ptr: %04x, keccak_dout_ptr : %04x\n", Dout_4B, ext_addr_4B_PTR);
+  PRINTF("dout_dst_ptr: %04x, keccak_dout_ptr : %04x\n", Dout, ext_addr_4B_PTR);
 
   // Second DMA transaction consist on reading Dout from Keccak register file
 
@@ -241,8 +240,6 @@ PRINTF("\n\n=====================================\n\n");
 
   // stop the HW counter used for monitoring
   CSR_READ(CSR_REG_MCYCLE, &cycles);
-  PRINTF("Number of clock cycles : %d\n", cycles);
-  PRINTF("Number of instructions : %d\nNumber of clock cycles: %d\nCPI: %f%f\n",instr_cnt, cycles_cnt, (float) instr_cnt/cycles_cnt);
-  
+  PRINTF("End : number of clock cycles : %d\n", cycles);
 }
 
