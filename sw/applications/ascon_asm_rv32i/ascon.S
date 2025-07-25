@@ -134,6 +134,19 @@ ascon_permute:
     linear x1l, x1h, x3l, x3h, x3h, x3l, 29, x3h, x3l, 7, t1h
     linear x3l, x3h, t0l, t0h, t0l, t0h, 10, t0l, t0h, 17, t1h
 
+    # -----------------------------------
+    # Fill registers t3-t6 with zero
+    li t0l, 0
+    li t0h, 0
+    li t1l, 0
+    li t1h, 0
+    # Dummy move of the x0 state to t5, t6
+    mv t0l, x0l
+    mv t0h, x0h
+    mv t1l, x1l
+    mv t1h, x1h
+    # -----------------------------------
+
     # condition ---------> Can be removed since it is used to perform the 12 rounds loop, but only the first 1 is needed
     # addi t1, t1, -15
     # bge t1, t1l, .LPloop
