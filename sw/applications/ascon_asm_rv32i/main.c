@@ -101,12 +101,12 @@ int main() {
       gpio_read(GPIO_INPUT_TRIGGER, &pin_value);
     }
     // Trigger the scope
-    gpio_write(GPIO_SCOPE_TRIGGER, 1);
+    // gpio_write(GPIO_SCOPE_TRIGGER, 1);
     
     result |= crypto_aead_encrypt(c, &clen, m, mlen, a, alen, (void*)0, n, k);
 
     // Reset the trigger signal
-    gpio_write(GPIO_SCOPE_TRIGGER, 0);
+    // gpio_write(GPIO_SCOPE_TRIGGER, 0);
     // Wait for the trigger signal to go low again
     while (pin_value) {
       gpio_read(GPIO_INPUT_TRIGGER, &pin_value);

@@ -140,11 +140,22 @@ ascon_permute:
     li t0h, 0
     li t1l, 0
     li t1h, 0
-    # Dummy move of the x0 state to t5, t6
+
+    # Set the GPIO for the scope
+    li a1, 1
+    li a0, 4
+    jal	gpio_write
+
+    # Dummy move of the x0 state to t3, t4 and x1 state to t5, t6
     mv t0l, x0l
     mv t0h, x0h
     mv t1l, x1l
     mv t1h, x1h
+
+    # Reset the GPIO
+    li a1, 0
+    li a0, 4
+    jal	gpio_write
     # -----------------------------------
 
     # condition ---------> Can be removed since it is used to perform the 12 rounds loop, but only the first 1 is needed
