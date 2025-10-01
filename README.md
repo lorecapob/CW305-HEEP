@@ -3,7 +3,7 @@ Porting of [`X-HEEP`](https://github.com/esl-epfl/x-heep) microcontroller to the
 
 The idea is to exploit the infrastructure provided by Chipwhisperer to carry out side-channel attacks on a `RISC-V` architecture-based microcontroller in order to determine the most vulnerable areas and possibly develop hardware countermeasures. Since `X-HEEP` supports different boot modes, a hardware bridge was developed to load instructions into the RAM of the microcontroller when the JTAG mode is selected without the need for a JTAG programmer. The bridge is also responsible for interfacing `X-HEEP` with the register module used by the Chipwhisperer API, since the two blocks work with two different clock domains. A schematic of the structure is shown below:
 
-<p align="center"><img src="docs/images/cw305_top_with_bridge_and_heep.png" width="1000"></p>
+<p align="center"><img src="docs/images/cw305_top_with_bridge_and_heep.svg" width="1000"></p>
 
 This repository supports both simulation with `Verilator` and synthesis with `Vivado`.
 
